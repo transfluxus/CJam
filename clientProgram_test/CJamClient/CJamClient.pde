@@ -2,7 +2,7 @@
 PGraphics pg;
 
 void setup() {
-pg = initCJam(this,"127.0.01");
+pg = initCJam(this,"127.0.0.1");
 pg.beginDraw();
 pg.background(0);
 pg.endDraw();
