@@ -19,12 +19,16 @@ public class CJamServer extends PApplet {
 	Client client;
 
 	String mainPath;
+	// where the java&class files of the clients go
 	String blobPath;
+	String setupFilesPath;
 
 	static final int port = 30303;
 
+	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
 
+	// import lines that go into a clientBlobJava file
 	String[] writeInitLine;
 	String nl = System.getProperty("line.separator");
 
@@ -35,11 +39,13 @@ public class CJamServer extends PApplet {
 		String p = new File("").getAbsolutePath();
 		mainPath = p.substring(0, p.length() - 3);
 		blobPath = mainPath + "blobs\\";
+		setupFilesPath = mainPath + "setupFiles\\";
 		File blobFolder = new File(blobPath);
 		if (!blobFolder.exists())
 			blobFolder.mkdirs();
 		// System.out.println(blobPath);
-		writeInitLine = loadStrings(new File(mainPath + "WriteInitLines"));
+		writeInitLine = loadStrings(new File(setupFilesPath
+				+ "BlobJavaImportLines.txt"));
 	}
 
 	@Override
@@ -118,30 +124,6 @@ public class CJamServer extends PApplet {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-
-		// version with internal compiler
-		// JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		// System.out.println(compiler);
-		// DiagnosticCollector<JavaFileObject> diagnostics = new
-		// DiagnosticCollector<JavaFileObject>();
-		// StandardJavaFileManager fileManager =
-		// compiler.getStandardFileManager(
-		// diagnostics, null, null);
-		// Iterable<? extends JavaFileObject> compilationUnits = fileManager
-		// .getJavaFileObjects(f);
-		// List<String> optionList = new ArrayList<String>();
-		// optionList.add("-classpath");
-		// optionList.add("core.jar");
-		// JavaCompiler.CompilationTask task = compiler.getTask(null,
-		// fileManager,
-		// diagnostics, optionList, null, compilationUnits);
-		// boolean success = task.call();
-		// try {
-		// fileManager.close();
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-		// System.out.println("Success: " + success);
 	}
 
 	private void collectClassFiles() {
