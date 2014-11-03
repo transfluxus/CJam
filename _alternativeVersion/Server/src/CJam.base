@@ -1,0 +1,67 @@
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.lang.reflect.*;
+import processing.core.*;
+
+public class CJam extends PApplet {
+	private static final long serialVersionUID = 1L;
+
+    private int layerCount = 0;
+    private Layer[] layers;
+
+	@Override
+	public void setup() {
+		size(600, 600, P3D);
+
+        // Count all classes that implement "Layer"
+        Class<?>[] classes = this.getClass().getDeclaredClasses();
+        for (int i=0; i<classes.length; i++) {
+            if(!classes[i].isInterface() && Layer.class.isAssignableFrom(classes[i])) {
+                layerCount++;
+            }
+        }
+        // Create Layer array		
+		layers = new Layer[layerCount];
+		// Populate Layer array creating instances of each class that implents "Layer".
+		int currentLayer = 0;
+        for (int i=0; i<classes.length; i++) {
+            if(!classes[i].isInterface() && Layer.class.isAssignableFrom(classes[i])) {
+                try {
+                    Constructor<?> ctor = classes[i].getDeclaredConstructor(this.getClass());
+                    layers[currentLayer] = (Layer)ctor.newInstance(this);
+                    layers[currentLayer].setup();
+                    currentLayer++;
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }				
+	}
+
+	@Override
+	public void draw() {
+	    background(0);
+	    for(int i=0; i<layerCount; i++) {
+            layers[i].draw();
+        }
+	}
+		
+	public static void main(String[] args) {
+
+		ArrayList<String> options = new ArrayList<String>();
+
+		options.add("--bgcolor=#000000");
+		options.add("--display=0");
+		options.add("--hide-stop");
+		if (2 < 1) {
+			options.add("--full-screen");
+		}
+		options.add("CJam");
+
+		String[] optionsArray = new String[options.size()];
+		optionsArray = options.toArray(optionsArray);
+
+		PApplet.main(optionsArray);
+	}
+}
