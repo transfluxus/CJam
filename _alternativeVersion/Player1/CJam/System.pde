@@ -4,14 +4,14 @@ Layer layer;
 void setup() {
   size(800, 600, P3D);
 
-  Class<?>[] a = this.getClass().getDeclaredClasses();
-  for (int i=0; i<a.length; i++) {
-    if (!a[i].isInterface() && Layer.class.isAssignableFrom(a[i])) {
+  Class<?>[] classes = this.getClass().getDeclaredClasses();
+  for (int i=0; i<classes.length; i++) {
+    if (!classes[i].isInterface() && Layer.class.isAssignableFrom(classes[i])) {
       try {
-        Constructor<?> ctor = a[i].getDeclaredConstructor(this.getClass());
+        Constructor<?> ctor = classes[i].getDeclaredConstructor(this.getClass());
         layer = (Layer)ctor.newInstance(this);
         layer.setup();
-      } 
+      }
       catch(Exception e) {
         e.printStackTrace();
       }
