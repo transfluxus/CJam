@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.io.InputStream; 
 import java.io.OutputStream; 
 import java.io.IOException;
-public class test extends PApplet{
+public class test2 extends PApplet{
 
 PGraphics pg;
 

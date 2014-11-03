@@ -18,10 +18,10 @@ public class CJamServer extends PApplet {
 	Server server;
 	Client client;
 
-	String mainPath;
+	public static String mainPath;
 	// where the java&class files of the clients go
-	String blobPath;
-	String setupFilesPath;
+	public static String blobPath;
+	public static String setupFilesPath;
 
 	static final int port = 30303;
 
@@ -36,16 +36,20 @@ public class CJamServer extends PApplet {
 	public void setup() {
 		super.setup();
 		server = new Server(this, port);
-		String p = new File("").getAbsolutePath();
-		mainPath = p.substring(0, p.length() - 3);
-		blobPath = mainPath + "blobs\\";
-		setupFilesPath = mainPath + "setupFiles\\";
+		setFolders();
 		File blobFolder = new File(blobPath);
 		if (!blobFolder.exists())
 			blobFolder.mkdirs();
 		// System.out.println(blobPath);
 		writeInitLine = loadStrings(new File(setupFilesPath
 				+ "BlobJavaImportLines.txt"));
+	}
+
+	public static void setFolders() {
+		String p = new File("").getAbsolutePath();
+		mainPath = p.substring(0, p.length() - 3);
+		blobPath = mainPath + "src\\blobs\\";
+		setupFilesPath = mainPath + "setupFiles\\";
 	}
 
 	@Override
@@ -131,8 +135,8 @@ public class CJamServer extends PApplet {
 		ArrayList<String> classFileList = new ArrayList<>();
 		for (String f : blobClassFiles)
 			if (f.endsWith(".class"))
-				classFileList.add(f);
-		saveStrings(mainPath + "classFiles",
+				classFileList.add(f.substring(0, f.length() - 6));
+		saveStrings(mainPath + "classFiles.txt",
 				classFileList.toArray(new String[0]));
 	}
 }
