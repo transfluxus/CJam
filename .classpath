@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="lib/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="lib/jogl-all.jar"/>
 	<classpathentry kind="lib" path="lib/net.jar"/>
+	<classpathentry kind="lib" path="lib/CJam.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

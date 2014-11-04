@@ -6,31 +6,25 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import blobs.*;
-
 public class BlobLoader {
 
-	// ArrayList<CJamBlob> blobs = new ArrayList<>();
-
 	public static ArrayList<CJamBlob> createBlobs() {
-		String blobPath = new File("").getAbsolutePath() + "\\blobs\\";
-
+		String p = new File("").getAbsolutePath();
+		String mainPath = p.substring(0, p.length() - 3);
+		String blobPath = mainPath + "\\src\\blobs\\";
 		ClassLoader classLoader = BlobLoader.class.getClassLoader();
 
 		ArrayList<CJamBlob> blobs = new ArrayList<>();
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(blobPath
-					+ "classFiles.txt"));
-			String line;
-			ArrayList<String> fileNames = new ArrayList<String>();
-			while (!((line = br.readLine()).equals(""))) {
-				fileNames.add(line);
+			String[] files = new File(blobPath).list();
+			System.out.println(blobPath);
+			for (String s : files) {
 				Class<CJamBlob> clazz = (Class<CJamBlob>) classLoader
-						.loadClass("blobs." + line);
+						.loadClass("blobs." + s.substring(0, s.length() - 5));
 				blobs.add(clazz.newInstance());
 			}
-		} catch (IOException | ClassNotFoundException | InstantiationException
+		} catch (ClassNotFoundException | InstantiationException
 				| IllegalAccessException e) {
 			e.printStackTrace();
 		}

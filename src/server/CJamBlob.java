@@ -5,11 +5,11 @@ import processing.core.PGraphics;
 
 public interface CJamBlob {
 
-	static PApplet parent = null;
-
 	void setup();
 
 	void draw();
 
 	PGraphics getPG();
+
+	void setParent(PApplet ap);
 }

@@ -60,6 +60,8 @@ public class CJamServer extends PApplet {
 	}
 
 	public void clientProcess(Client client) {
+		System.out.println("Client msg: "
+				+ java.util.Calendar.getInstance().getTime());
 		String ip = client.ip();
 		String cs = client.readString();
 		String[] lines = cs.split("\n");
@@ -79,14 +81,23 @@ public class CJamServer extends PApplet {
 		File cFile = new File(blobPath + name + ".java");
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(cFile));
-			for (String l : writeInitLine)
+			int lInd = 0;
+			for (; !writeInitLine[lInd].equals("//"); lInd++) {
+				String l = writeInitLine[lInd];
 				bw.write(l + nl);
+			}
 			bw.write("public class " + name + " implements CJamBlob {" + nl);
-			for (String line : lines)
+			for (String line : lines) {
 				bw.write(line);
+			}
+			bw.write(nl);
+			for (lInd++; lInd < writeInitLine.length; lInd++) {
+				bw.write(writeInitLine[lInd] + nl);
+			}
 			bw.write("}");
 			bw.close();
 			println("Written!");
+			server.disconnect(client);
 			compile(cFile);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -109,20 +120,20 @@ public class CJamServer extends PApplet {
 					p.getErrorStream()));
 
 			// read the output from the command
-			System.out.println("Here is the standard output of the command:\n");
+			// System.out.println("Here is the standard output of the command:\n");
 			while ((s = stdInput.readLine()) != null) {
 				System.out.println(s);
 			}
 
 			// read any errors from the attempted command
-			System.out
-					.println("Here is the standard error of the command (if any):\n");
+			// System.out
+			// .println("Here is the standard error of the command (if any):\n");
 			while ((s = stdError.readLine()) != null) {
 				System.out.println(s);
 			}
 
 			// System.exit(0);
-			collectClassFiles();
+			// collectClassFiles();
 		} catch (IOException e) {
 			System.out.println("exception happened - here's what I know: ");
 			e.printStackTrace();
@@ -130,13 +141,13 @@ public class CJamServer extends PApplet {
 		}
 	}
 
-	private void collectClassFiles() {
-		String[] blobClassFiles = new File(blobPath).list();
-		ArrayList<String> classFileList = new ArrayList<>();
-		for (String f : blobClassFiles)
-			if (f.endsWith(".class"))
-				classFileList.add(f.substring(0, f.length() - 6));
-		saveStrings(mainPath + "classFiles.txt",
-				classFileList.toArray(new String[0]));
-	}
+	// private void collectClassFiles() {
+	// String[] blobClassFiles = new File(blobPath).list();
+	// ArrayList<String> classFileList = new ArrayList<>();
+	// for (String f : blobClassFiles)
+	// if (f.endsWith(".class"))
+	// classFileList.add(f.substring(0, f.length() - 6));
+	// saveStrings(setupFilesPath + "classFiles.txt",
+	// classFileList.toArray(new String[0]));
+	// }
 }
