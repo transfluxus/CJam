@@ -6,7 +6,7 @@ http://ant.apache.org/bindownload.cgi?Preferred=ftp://apache.mirrors.pair.com/ -
   <target name="clientLib">
 <!--    <echo>${HelloText}</echo> -->
   	<echo>Creating CJam library (for clients)</echo>
-  	<jar includes="*.class" basedir="bin/client" destfile="CJam/library/CJam.jar"/>
+  	<jar includes="client/*.class" basedir="bin" destfile="CJam/library/CJam.jar"/>
   	<echo>Done! Copy the CJam folder into the library folder of P5</echo>
   </target>
 </project>

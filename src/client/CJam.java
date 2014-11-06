@@ -8,7 +8,7 @@ import processing.net.Client;
 public class CJam {
 
 	final PApplet ap;
-	Client client;
+	static Client client;
 	final static int port = 30303;
 
 	boolean written;
@@ -88,4 +88,9 @@ public class CJam {
 		autoBgColor = c;
 	}
 
+	public static void setName(String name) {
+		if (client.active()) {
+			client.write("name:" + name);
+		}
+	}
 }
