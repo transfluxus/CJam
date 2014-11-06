@@ -1,13 +1,11 @@
 
-PGraphics pg;
 
 void setup() {
-pg = initCJam(this,"127.0.0.1");
-pg.beginDraw();
-pg.background(0);
-pg.endDraw();
+  initCJam(this, "127.0.01");
+ background(0);
 }
 
 void draw() {
-//image(pg,0,0);
+  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);
 }
+

@@ -1,4 +1,3 @@
-
 import processing.net.*;
 // needs to go into the CJAM and static
 PGraphics initCJam(PApplet ap, String serverIp) {
@@ -16,7 +15,7 @@ public class CJam {
   public CJam(PApplet ap, String serverIp) {
     this.ap = ap;
     ap.size(800, 600);
-    readPDE();
+    //    readPDE();
     try {
       client = new Client(ap, serverIp, port);
       if (client.active())
@@ -31,11 +30,11 @@ public class CJam {
 
   public void post() {
     if (!written) {
-      println("sending");
+      println("sending"    );
       client.write(readPDE()); 
       written = true;
     }
-    image(pg, 0, 0);
+    //    image(pg, 0, 0);
     //    ap.unregisterMethod("post", this);
   }
 
@@ -58,6 +57,9 @@ public class CJam {
             l = "public "+l; 
           else if (l.contains("initCJam("))
             l = "";
+          //            l = "pg = parent.createGraphics(800,600);";
+          else if (l.contains("image("))
+            l = "";
           sb.append(l+System.getProperty("line.separator"));
         }
         // since only one file is supported atm return it
@@ -67,3 +69,4 @@ public class CJam {
     return "";
   }
 }
+
