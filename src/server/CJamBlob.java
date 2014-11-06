@@ -9,5 +9,4 @@ public interface CJamBlob {
 
 	void draw();
 
-	// void setParent(PApplet ap);
 }

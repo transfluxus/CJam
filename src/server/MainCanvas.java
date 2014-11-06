@@ -36,6 +36,6 @@ public class MainCanvas extends PApplet {
 
 
 public class blob_127_0_0_1 implements CJamBlob {
-public void setup() {  background(0);}public void draw() {  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);}
+public void setup() {  background(0);}public void draw() {  fill(255,0,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);}
 }
 }
