@@ -6,12 +6,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import processing.core.PApplet;
 import processing.net.Client;
 import processing.net.Server;
+import client.CJam;
 
 public class CJamServer extends PApplet {
 
@@ -33,25 +33,35 @@ public class CJamServer extends PApplet {
 	static final int port = 30303;
 
 	public boolean writeStandAlone = true;
+	public boolean deleteOldInnerClasses = true;
 
 	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
 
 	// import lines that go into a clientBlobJava file
-	String[] writeInitLine;
+	// String[] writeInitLine;
 	String nl = System.getProperty("line.separator");
+
+	final int msgEndMarker = CJam.msgEndMarker;
 
 	@Override
 	public void setup() {
 		super.setup();
+		System.out.println(msgEndMarker);
 		server = new Server(this, port);
 		setFolders();
 		File blobFolder = new File(blobPath);
 		if (!blobFolder.exists())
 			blobFolder.mkdirs();
+		if (deleteOldInnerClasses)
+			deleteOldInnerClasses();
 		// System.out.println(blobPath);
-		writeInitLine = loadStrings(new File(setupFilesPath
-				+ "BlobJavaImportLines.txt"));
+	}
+
+	private void deleteOldInnerClasses() {
+		File[] oldFiles = new File(innerClassPath).listFiles();
+		for (File f : oldFiles)
+			f.delete();
 	}
 
 	public static void setFolders() {
@@ -67,24 +77,30 @@ public class CJamServer extends PApplet {
 	@Override
 	public void draw() {
 		client = server.available();
-		if (client != null)
-			clientProcess(client);
+		if (client != null) {
+			String s = client.readStringUntil(msgEndMarker);
+			if (s != null) {
+				System.out.println(s);
+				clientProcess(client, s.substring(0, s.length() - 1));
+			}
+		}
 	}
 
-	public void clientProcess(Client client) {
+	public void clientProcess(Client client, String msg) {
 		System.out.println("Client msg: "
 				+ java.util.Calendar.getInstance().getTime());
 		String ip = client.ip();
-		String cs = client.readString();
+		System.out.println(msg);
 		// dumpToBlobTxt();
-		String[] lines = cs.split("\n");
+		String[] lines = msg.split("\n");
 		// println("received: " + cs);
 		// println(lines.length);
-		if (cs.startsWith("name:")) {
-			ipToName.put(ip, cs.substring(5));
+		if (msg.startsWith("name:")) {
+			ipToName.put(ip, msg.substring(5));
 			File oldBlobClass = new File("blob_" + ip.replaceAll("\\.", "_"));
 			if (oldBlobClass.exists())
 				oldBlobClass.delete();
+			return;
 		} else if (!ipToName.containsKey(ip)) {
 			String name = "blob_" + ip.replaceAll("\\.", "_");
 			System.out.println(name);
@@ -156,6 +172,12 @@ public class CJamServer extends PApplet {
 			e.printStackTrace();
 		}
 	}
+
+	// public void serverEvent(Server someServer, Client someClient) {
+	// println("We have a new client: " + someClient.ip());
+	// if (someClient.available() > 0)
+	// System.out.println(someClient.readString());
+	// }
 
 	/*
 	 * public void compile(File f) { String s = null; try { // run the Unix

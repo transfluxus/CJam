@@ -8,12 +8,18 @@ import processing.net.Client;
 public class CJam {
 
 	final PApplet ap;
-	static Client client;
+	// for debugging
+	public static Client client;
 	final static int port = 30303;
 
 	boolean written;
 	static boolean autoBg = false;
 	static int autoBgColor;
+
+	public static int msgEndMarker = "###ENDOFMSG".hashCode();
+
+	static String[] deleteLines = { "initCJam", "import client.CJam", "image",
+			"autoBg" };
 
 	public static CJam initCJam(PApplet ap, String serverIp) {
 		return new CJam(ap, serverIp);
@@ -36,6 +42,7 @@ public class CJam {
 		if (!written && client.active()) {
 			ap.println("sending");
 			client.write(readPDE());
+			client.write(msgEndMarker);
 			written = true;
 			ap.println("sent!");
 		}
@@ -63,17 +70,25 @@ public class CJam {
 						// println("setup found");
 					} else if (l.contains("draw()"))
 						l = "public " + l;
-					else if (l.contains("initCJam("))
-						l = "";
-					else if (l.contains("import client.CJam"))
-						l = "";
-					else if (l.contains("autoBg(")) // should be a static method
-													// of CJam, is then easier
-													// to filter
-						l = "";
-					// l = "pg = parent.createGraphics(800,600);";
-					else if (l.contains("image("))
-						l = "";
+					else {
+						for (String del : deleteLines)
+							if (l.contains(del)) {
+								l = "";
+								break;
+							}
+					}
+					// else if (l.contains("initCJam("))
+					// l = "";
+					// else if (l.contains("import client.CJam"))
+					// l = "";
+					// else if (l.contains("autoBg(")) // should be a static
+					// method
+					// // of CJam, is then easier
+					// // to filter
+					// l = "";
+					// // l = "pg = parent.createGraphics(800,600);";
+					// else if (l.contains("image("))
+					// l = "";
 					sb.append(l + System.getProperty("line.separator"));
 				}
 				// since only one file is supported atm return it
@@ -91,6 +106,7 @@ public class CJam {
 	public static void setName(String name) {
 		if (client.active()) {
 			client.write("name:" + name);
+			client.write(msgEndMarker);
 		}
 	}
 }

@@ -35,7 +35,7 @@ public class MainCanvas extends PApplet {
 	}
 
 
-public class blob_127_0_0_1 implements CJamBlob {
-public void setup() {  background(0);}public void draw() {  fill(255,0,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);}
+public class local1 implements CJamBlob {
+public void setup() {  CJam.setName("local1");  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);  }void mousePressed() { CJam.client.write(mouseX); }
 }
 }
