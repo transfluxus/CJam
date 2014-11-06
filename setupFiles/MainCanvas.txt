@@ -1,12 +1,11 @@
 package server;
 
-import java.util.ArrayList;
 
 import processing.core.PApplet;
 
 public class MainCanvas extends PApplet {
 
-	ArrayList<CJamBlob> blobs = new ArrayList<>();
+	CJamBlob blobs[];
 
 	@Override
 	public void setup() {

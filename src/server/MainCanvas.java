@@ -1,17 +1,16 @@
 package server;
 
-import java.lang.reflect.Constructor;
-
 import processing.core.PApplet;
 
 public class MainCanvas extends PApplet {
 
-	CJamBlob[] blobs;
+	CJamBlob blobs[];
 
 	@Override
 	public void setup() {
 		super.setup();
 		size(800, 600);
+		// blobs = BlobLoader.createBlobs();
 		@SuppressWarnings("unchecked")
 		Class<CJamBlob>[] clazzes = (Class<CJamBlob>[]) this.getClass()
 				.getDeclaredClasses();
@@ -24,16 +23,11 @@ public class MainCanvas extends PApplet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		// blobs = BlobLoader.createBlobs();
-		// for (CJamBlob b : blobs) {
-		// // b.setParent(this);
-		// System.out.println(b);
-		// b.setup();
-		// }
 	}
 
 	@Override
 	public void draw() {
+		background(0);
 		for (CJamBlob b : blobs) {
 			b.draw();
 			// image(b.getPG(), 0, 0);

@@ -21,6 +21,11 @@ public class CJamServer extends PApplet {
 	public static String mainPath;
 	// where the java&class files of the clients go
 	public static String blobPath;
+	/**
+	 * here are the blob-codes(format that gets into the MainCanvas) These are
+	 * just txt files-since they dont run on their own
+	 */
+	public static String innerClassPath;
 	public static String setupFilesPath;
 	public static File mainCanvasTxt;
 	public static File mainCanvasJava;
@@ -52,6 +57,7 @@ public class CJamServer extends PApplet {
 		mainPath = p.substring(0, p.length() - 3);
 		blobPath = mainPath + "src\\blobs\\";
 		setupFilesPath = mainPath + "setupFiles\\";
+		innerClassPath = mainPath + "innerClasses\\";
 		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
 		mainCanvasJava = new File(mainPath + "\\src\\server\\MainCanvas.java");
 	}
@@ -68,6 +74,7 @@ public class CJamServer extends PApplet {
 				+ java.util.Calendar.getInstance().getTime());
 		String ip = client.ip();
 		String cs = client.readString();
+		// dumpToBlobTxt();
 		String[] lines = cs.split("\n");
 		// println("received: " + cs);
 		// println(lines.length);
@@ -83,23 +90,26 @@ public class CJamServer extends PApplet {
 		}
 		String name = ipToName.get(ip);
 		File cFile = new File(blobPath + name + ".java");
+		File innerClassFile = new File(innerClassPath + name + ".txt");
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(cFile));
+			// BufferedWriter bw = new BufferedWriter(new FileWriter(cFile));
+			BufferedWriter innerClassWriter = new BufferedWriter(
+					new FileWriter(innerClassFile));
 			// int lInd = 0;
 			// for (; !writeInitLine[lInd].equals("//"); lInd++) {
 			// String l = writeInitLine[lInd];
 			// bw.write(l + nl);
 			// }
-			bw.write("public class " + name + " implements CJamBlob {" + nl);
-			for (String line : lines) {
-				bw.write(line);
-			}
-			bw.write(nl);
+			innerClassWriter.write("public class " + name
+					+ " implements CJamBlob {" + nl);
+			for (String line : lines)
+				innerClassWriter.write(line);
+			innerClassWriter.write(nl);
 			// for (lInd++; lInd < writeInitLine.length; lInd++) {
 			// bw.write(writeInitLine[lInd] + nl);
 			// }
-			bw.write("}");
-			bw.close();
+			innerClassWriter.write("}");
+			innerClassWriter.close();
 			println("Written!");
 			server.disconnect(client);
 			// compile(cFile);
@@ -123,7 +133,7 @@ public class CJamServer extends PApplet {
 			// bw = new BufferedWriter(fw);
 			// for (String line : canvasLines)
 			// bw.write(line + nl);
-			File[] blobFiles = new File(blobPath).listFiles();
+			File[] blobFiles = new File(innerClassPath).listFiles();
 			for (File blob : blobFiles) {
 				System.out.println(blob);
 				reader = new FileReader(blob);
