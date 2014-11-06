@@ -89,10 +89,11 @@ public class CJamServer extends PApplet {
 			ipToName.put(ip, name);
 		}
 		String name = ipToName.get(ip);
-		File cFile = new File(blobPath + name + ".java");
+		File standaloneBlob = new File(blobPath + name + ".java");
 		File innerClassFile = new File(innerClassPath + name + ".txt");
 		try {
-			// BufferedWriter bw = new BufferedWriter(new FileWriter(cFile));
+			BufferedWriter standaloneWriter = new BufferedWriter(
+					new FileWriter(standaloneBlob));
 			BufferedWriter innerClassWriter = new BufferedWriter(
 					new FileWriter(innerClassFile));
 			// int lInd = 0;
@@ -100,16 +101,28 @@ public class CJamServer extends PApplet {
 			// String l = writeInitLine[lInd];
 			// bw.write(l + nl);
 			// }
+			BufferedReader standaloneTemplateReader = new BufferedReader(
+					new FileReader(setupFilesPath + "BlobJavaImportLines.txt"));
+			String l;
+			while ((l = standaloneTemplateReader.readLine()) != null)
+				standaloneWriter.write(l + nl);
 			innerClassWriter.write("public class " + name
 					+ " implements CJamBlob {" + nl);
-			for (String line : lines)
+			standaloneWriter.write("public class " + name
+					+ " extends PApplet {" + nl);
+			for (String line : lines) {
 				innerClassWriter.write(line);
+				standaloneWriter.write(line);
+			}
+			standaloneWriter.write(nl);
 			innerClassWriter.write(nl);
 			// for (lInd++; lInd < writeInitLine.length; lInd++) {
 			// bw.write(writeInitLine[lInd] + nl);
 			// }
 			innerClassWriter.write("}");
 			innerClassWriter.close();
+			standaloneWriter.write("}");
+			standaloneWriter.close();
 			println("Written!");
 			server.disconnect(client);
 			// compile(cFile);

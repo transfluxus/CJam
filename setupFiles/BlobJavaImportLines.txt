@@ -15,14 +15,4 @@ import java.io.InputStream;
 import java.io.OutputStream; 
 import java.io.IOException;
 */
-import server.*;
 
-//
-PApplet parent;
-public void setParent(PApplet ap) {
-	parent = ap;
-}
-
-public PGraphics getPG() {
-	return pg;
-}
