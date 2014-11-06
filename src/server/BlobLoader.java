@@ -8,10 +8,11 @@ import java.util.ArrayList;
 
 public class BlobLoader {
 
+	static String mainPath;
+	static String blobPath;
+
 	public static ArrayList<CJamBlob> createBlobs() {
-		String p = new File("").getAbsolutePath();
-		String mainPath = p.substring(0, p.length() - 3);
-		String blobPath = mainPath + "\\src\\blobs\\";
+		setupPaths();
 		ClassLoader classLoader = BlobLoader.class.getClassLoader();
 
 		ArrayList<CJamBlob> blobs = new ArrayList<>();
@@ -30,6 +31,18 @@ public class BlobLoader {
 		}
 		return blobs;
 	}
+
+	private static void setupPaths() {
+		String p = new File("").getAbsolutePath();
+		String mainPath = p.substring(0, p.length() - 3);
+		String blobPath = mainPath + "\\src\\blobs\\";
+
+	}
+
+	// public static File[] BlobJavaFiles() {
+	// setupPaths();
+	//
+	// }
 
 	public static void main(String[] args) {
 		System.out.println(BlobLoader.createBlobs().size());

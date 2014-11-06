@@ -9,7 +9,5 @@ public interface CJamBlob {
 
 	void draw();
 
-	PGraphics getPG();
-
-	void setParent(PApplet ap);
+	// void setParent(PApplet ap);
 }

@@ -3,10 +3,10 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import processing.core.PApplet;
@@ -22,6 +22,8 @@ public class CJamServer extends PApplet {
 	// where the java&class files of the clients go
 	public static String blobPath;
 	public static String setupFilesPath;
+	public static File mainCanvasTxt;
+	public static File mainCanvasJava;
 
 	static final int port = 30303;
 
@@ -50,6 +52,8 @@ public class CJamServer extends PApplet {
 		mainPath = p.substring(0, p.length() - 3);
 		blobPath = mainPath + "src\\blobs\\";
 		setupFilesPath = mainPath + "setupFiles\\";
+		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
+		mainCanvasJava = new File(mainPath + "\\src\\server\\MainCanvas.java");
 	}
 
 	@Override
@@ -81,24 +85,55 @@ public class CJamServer extends PApplet {
 		File cFile = new File(blobPath + name + ".java");
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(cFile));
-			int lInd = 0;
-			for (; !writeInitLine[lInd].equals("//"); lInd++) {
-				String l = writeInitLine[lInd];
-				bw.write(l + nl);
-			}
+			// int lInd = 0;
+			// for (; !writeInitLine[lInd].equals("//"); lInd++) {
+			// String l = writeInitLine[lInd];
+			// bw.write(l + nl);
+			// }
 			bw.write("public class " + name + " implements CJamBlob {" + nl);
 			for (String line : lines) {
 				bw.write(line);
 			}
 			bw.write(nl);
-			for (lInd++; lInd < writeInitLine.length; lInd++) {
-				bw.write(writeInitLine[lInd] + nl);
-			}
+			// for (lInd++; lInd < writeInitLine.length; lInd++) {
+			// bw.write(writeInitLine[lInd] + nl);
+			// }
 			bw.write("}");
 			bw.close();
 			println("Written!");
 			server.disconnect(client);
-			compile(cFile);
+			// compile(cFile);
+			updateMainCanvas();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void updateMainCanvas() {
+		// ###blobs
+		// String[] canvasLines = loadStrings(mainCanvasTxt);
+		// try {
+		try {
+			FileReader reader = new FileReader(mainCanvasTxt);
+			FileWriter fw = new FileWriter(mainCanvasJava);
+			int read = 0;
+			while ((read = reader.read()) != -1)
+				fw.write(read);
+			reader.close();
+			// bw = new BufferedWriter(fw);
+			// for (String line : canvasLines)
+			// bw.write(line + nl);
+			File[] blobFiles = new File(blobPath).listFiles();
+			for (File blob : blobFiles) {
+				System.out.println(blob);
+				reader = new FileReader(blob);
+				while ((read = reader.read()) != -1)
+					fw.write(read);
+				reader.close();
+			}
+			// bw.write("}" + nl);
+			fw.write(nl + "}" + nl);
+			fw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -141,13 +176,4 @@ public class CJamServer extends PApplet {
 		}
 	}
 
-	// private void collectClassFiles() {
-	// String[] blobClassFiles = new File(blobPath).list();
-	// ArrayList<String> classFileList = new ArrayList<>();
-	// for (String f : blobClassFiles)
-	// if (f.endsWith(".class"))
-	// classFileList.add(f.substring(0, f.length() - 6));
-	// saveStrings(setupFilesPath + "classFiles.txt",
-	// classFileList.toArray(new String[0]));
-	// }
 }
