@@ -1,6 +1,5 @@
 package server;
 
-
 import processing.core.PApplet;
 
 public class MainCanvas extends PApplet {
@@ -11,31 +10,27 @@ public class MainCanvas extends PApplet {
 	public void setup() {
 		super.setup();
 		size(800, 600);
-		//blobs = BlobLoader.createBlobs();
-		@SuppressWarnings("unchecked")
-		Class<CJamBlob>[] clazzes = (Class<CJamBlob>[]) this.getClass()
-				.getDeclaredClasses();
-		blobs = new CJamBlob[clazzes.length];
-		for (int i = 0; i < blobs.length; i++)
-			try {
-				blobs[i] = clazzes[i].getDeclaredConstructor(this.getClass())
-						.newInstance(this);
-				blobs[i].setup();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		blobs = BlobLoader.loadBlobs(this);
+		for (CJamBlob b : blobs) {
+			pushStyle();
+			b.setup();
+			b.style = PStyleCopy.copyStyle(g.getStyle());
+			popStyle();
+		}
 	}
 
 	@Override
 	public void draw() {
 		for (CJamBlob b : blobs) {
+			pushStyle();
+			style(b.style);
 			b.draw();
-			//image(b.getPG(), 0, 0);
+			b.style = PStyleCopy.copyStyle(g.getStyle());
+			popStyle();
 		}
 	}
 
-
-public class local1 implements CJamBlob {
-public void setup() {  CJam.setName("local1");  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);  }void mousePressed() { CJam.client.write(mouseX); }
+	public class local1 extends CJamBlob {
+public void setup() {  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);  }public void mousePressed() {}
 }
 }

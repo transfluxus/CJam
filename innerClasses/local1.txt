@@ -1,3 +1,3 @@
-public class local1 implements CJamBlob {
-public void setup() {  CJam.setName("local1");  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);  }void mousePressed() { CJam.client.write(mouseX); }
+public class local1 extends CJamBlob {
+public void setup() {  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);  }public void mousePressed() {}
 }

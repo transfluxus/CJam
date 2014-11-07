@@ -11,7 +11,6 @@ public class BlobLoader {
 			try {
 				blobs[i] = clazzes[i].getDeclaredConstructor(canvas.getClass())
 						.newInstance(canvas);
-				blobs[i].setup();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

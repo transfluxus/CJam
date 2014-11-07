@@ -11,12 +11,23 @@ public class MainCanvas extends PApplet {
 		super.setup();
 		size(800, 600);
 		blobs = BlobLoader.loadBlobs(this);
+		for (CJamBlob b : blobs) {
+			pushStyle();
+			b.setup();
+			b.style = PStyleCopy.copyStyle(g.getStyle());
+			popStyle();
+		}
 	}
 
 	@Override
 	public void draw() {
-		for (CJamBlob b : blobs) 
+		for (CJamBlob b : blobs) {
+			pushStyle();
+			style(b.style);
 			b.draw();
+			b.style = PStyleCopy.copyStyle(g.getStyle());
+			popStyle();
+		}
 	}
 
 	

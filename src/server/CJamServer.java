@@ -124,7 +124,7 @@ public class CJamServer extends PApplet {
 						+ " extends PApplet {" + nl);
 			}
 			innerClassWriter.write("public class " + name
-					+ " implements CJamBlob {" + nl);
+					+ " extends CJamBlob {" + nl);
 			for (String line : lines) {
 				if (line.contains(CJam.delMarker))
 					continue;

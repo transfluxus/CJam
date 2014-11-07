@@ -1,9 +1,17 @@
 package server;
 
-public interface CJamBlob {
+import processing.core.PStyle;
 
-	void setup();
+public abstract class CJamBlob {
 
-	void draw();
+	abstract public void setup();
+
+	abstract public void draw();
+
+	PStyle style;
+
+	public void setStyle(PStyle style) {
+		this.style = style;
+	}
 
 }
