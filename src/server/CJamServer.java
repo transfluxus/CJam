@@ -14,6 +14,7 @@ import processing.net.Server;
 import client.CJam;
 
 public class CJamServer extends PApplet {
+	private static final long serialVersionUID = -4544033159723138250L;
 
 	Server server;
 	Client client;
@@ -34,34 +35,30 @@ public class CJamServer extends PApplet {
 
 	public boolean writeStandAlone = true;
 	public boolean deleteOldInnerClasses = true;
+	public boolean deleteOldStandalones = true;
 
 	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
 
-	// import lines that go into a clientBlobJava file
-	// String[] writeInitLine;
 	String nl = System.getProperty("line.separator");
-
-	final int msgEndMarker = CJam.msgEndMarker;
 
 	@Override
 	public void setup() {
 		super.setup();
-		System.out.println(msgEndMarker);
 		server = new Server(this, port);
 		setFolders();
-		File blobFolder = new File(blobPath);
-		if (!blobFolder.exists())
-			blobFolder.mkdirs();
 		if (deleteOldInnerClasses)
-			deleteOldInnerClasses();
+			deleteFilesIn(innerClassPath);
+		if (deleteOldStandalones)
+			deleteFilesIn(blobPath);
 		// System.out.println(blobPath);
 	}
 
-	private void deleteOldInnerClasses() {
-		File[] oldFiles = new File(innerClassPath).listFiles();
+	private void deleteFilesIn(String path) {
+		File[] oldFiles = new File(path).listFiles();
 		for (File f : oldFiles)
 			f.delete();
+
 	}
 
 	public static void setFolders() {
@@ -78,7 +75,7 @@ public class CJamServer extends PApplet {
 	public void draw() {
 		client = server.available();
 		if (client != null) {
-			String s = client.readStringUntil(msgEndMarker);
+			String s = client.readStringUntil(CJam.msgEndMarker);
 			if (s != null) {
 				System.out.println(s);
 				clientProcess(client, s.substring(0, s.length() - 1));
@@ -129,6 +126,8 @@ public class CJamServer extends PApplet {
 			innerClassWriter.write("public class " + name
 					+ " implements CJamBlob {" + nl);
 			for (String line : lines) {
+				if (line.contains(CJam.delMarker))
+					continue;
 				innerClassWriter.write(line);
 				if (writeStandAlone)
 					standaloneWriter.write(line);

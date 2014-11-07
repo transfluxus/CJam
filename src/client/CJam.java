@@ -17,9 +17,10 @@ public class CJam {
 	static int autoBgColor;
 
 	public static int msgEndMarker = "###ENDOFMSG".hashCode();
+	public static String delMarker = "//DEL";
 
 	static String[] deleteLines = { "initCJam", "import client.CJam", "image",
-			"autoBg" };
+			"autoBg", "CJam." };
 
 	public static CJam initCJam(PApplet ap, String serverIp) {
 		return new CJam(ap, serverIp);
@@ -40,11 +41,11 @@ public class CJam {
 
 	public void post() {
 		if (!written && client.active()) {
-			ap.println("sending");
+			PApplet.println("sending");
 			client.write(readPDE());
 			client.write(msgEndMarker);
 			written = true;
-			ap.println("sent!");
+			PApplet.println("sent!");
 		}
 		if (autoBg)
 			ap.background(autoBgColor);
@@ -61,7 +62,7 @@ public class CJam {
 			// println(f.getName());
 			if (f.isFile() && f.getName().endsWith(".pde")
 					&& !(f.getName().equals("CJam.pde"))) {
-				String lines[] = ap.loadStrings(f);
+				String lines[] = PApplet.loadStrings(f);
 				// println("reading: " + f.getName());
 				for (String l : lines) {
 					// println(l);
@@ -70,10 +71,14 @@ public class CJam {
 						// println("setup found");
 					} else if (l.contains("draw()"))
 						l = "public " + l;
+					else if (l.contains("mousePressed()"))
+						l = "public " + l;
+					else if (l.contains("keyPressed()"))
+						l = "public " + l;
 					else {
 						for (String del : deleteLines)
 							if (l.contains(del)) {
-								l = "";
+								l = "//DEL";
 								break;
 							}
 					}

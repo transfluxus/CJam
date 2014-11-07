@@ -1,6 +1,5 @@
 package server;
 
-
 import processing.core.PApplet;
 
 public class MainCanvas extends PApplet {
@@ -11,27 +10,13 @@ public class MainCanvas extends PApplet {
 	public void setup() {
 		super.setup();
 		size(800, 600);
-		//blobs = BlobLoader.createBlobs();
-		@SuppressWarnings("unchecked")
-		Class<CJamBlob>[] clazzes = (Class<CJamBlob>[]) this.getClass()
-				.getDeclaredClasses();
-		blobs = new CJamBlob[clazzes.length];
-		for (int i = 0; i < blobs.length; i++)
-			try {
-				blobs[i] = clazzes[i].getDeclaredConstructor(this.getClass())
-						.newInstance(this);
-				blobs[i].setup();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		blobs = BlobLoader.loadBlobs(this);
 	}
 
 	@Override
 	public void draw() {
-		for (CJamBlob b : blobs) {
+		for (CJamBlob b : blobs) 
 			b.draw();
-			//image(b.getPG(), 0, 0);
-		}
 	}
 
-
+	
