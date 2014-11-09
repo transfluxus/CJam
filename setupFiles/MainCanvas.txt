@@ -5,7 +5,8 @@ import processing.core.PApplet;
 public class MainCanvas extends PApplet {
 
 	CJamBlob blobs[];
-
+	public static MainCanvas mc;
+	
 	@Override
 	public void setup() {
 		super.setup();
@@ -17,6 +18,8 @@ public class MainCanvas extends PApplet {
 			b.style = PStyleCopy.copyStyle(g.getStyle());
 			popStyle();
 		}
+		mc = this;
+		CJamServer.MCRunning = true;
 	}
 
 	@Override
