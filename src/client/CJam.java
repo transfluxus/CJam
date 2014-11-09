@@ -33,6 +33,7 @@ public class CJam {
 		this.ap = ap;
 		ap.size(800, 600);
 		try {
+			log.info("connecting...");
 			client = new Client(ap, serverIp, port);
 			ap.registerMethod("post", this);
 			if (!client.active())
@@ -45,13 +46,13 @@ public class CJam {
 
 	public void post() {
 		if (!written && client.active()) {
-			PApplet.println("sending");
+			log.info("sending");
 			String pde = readPDE();
 			log.info(pde);
 			client.write(pde);
 			client.write(msgEndMarker);
 			written = true;
-			PApplet.println("sent!");
+			log.info("sent!");
 		}
 		if (autoBg)
 			ap.background(autoBgColor);
@@ -69,7 +70,6 @@ public class CJam {
 			if (f.isFile() && f.getName().equals(mainPde)) {
 				String lines[] = PApplet.loadStrings(f);
 				log.info("reading: " + f.getName());
-				PApplet.println(f.getName());
 				for (String l : lines) {
 					if (l.contains("setup()"))
 						l = "public " + l;
