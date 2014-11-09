@@ -12,12 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 import processing.core.PApplet;
 import processing.net.Client;
@@ -53,13 +48,13 @@ public class CJamServer extends PApplet {
 
 	private final String nl = System.getProperty("line.separator");
 
-	private static Logger log = Logger.getGlobal();
+	private Logger log = Logger.getGlobal();
 
 	/**
 	 * wait until thi number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 1;
+	private final int canvasUdpateRate = 3;
 
 	ArrayList<String> submits = new ArrayList<String>();
 
@@ -70,24 +65,20 @@ public class CJamServer extends PApplet {
 	private final int updateTimeout = 30000;
 	private int updateTimer = 0;
 
-	public static boolean MCRunning = false;
-
 	@Override
 	public void setup() {
-		super.setup();
-		size(1, 1);
-		log.setLevel(Level.ALL);
-		log.setFilter(null);
+//		super.setup();
+		size(400, 100);
+		log.setLevel(Level.INFO);
 		log.setUseParentHandlers(false);
 		Handler h = new ConsoleHandler();
 		h.setFormatter(new SimpleFormatter() {
-
 			@Override
 			public String format(LogRecord record) {
+				System.out.println("na");
 				return record.getMessage() + " @T: " + time(record.getMillis())
 						+ "\n";
 			}
-
 			private String time(long millisecs) {
 				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
 				Date resultdate = new Date(millisecs);
@@ -142,7 +133,7 @@ public class CJamServer extends PApplet {
 	}
 
 	private void TimoutUpdate() {
-		if (submits.size() >= 1 && (millis() - updateTimer) >= updateTimeout) {
+		if (submits.size() >= 1 && millis() - updateTimer >= updateTimeout) {
 			updateMainCanvas();
 			submits.clear();
 		}
@@ -150,7 +141,9 @@ public class CJamServer extends PApplet {
 
 	public void clientProcess(Client client, String msg) {
 		String ip = client.ip();
-		log.info("Client msg: " + ip + "\n" + msg);
+		log.fine("Client msg: " + ip + "\n" + msg);
+		System.out.println("Client msg: " + ip + "\n" + msg);
+		System.out.println(log.getLevel());
 		// println("received: " + cs);
 		// println(lines.length);
 		if (msg.startsWith("name:")) {
@@ -161,7 +154,8 @@ public class CJamServer extends PApplet {
 			return;
 		} else if (!ipToName.containsKey(ip)) {
 			String name = "blob_" + ip.replaceAll("\\.", "_");
-			log.info("new Client: " + name);
+			log.fine("new Client: " + name);
+			System.out.println("new Client: " + name);
 			ipToName.put(ip, name);
 		}
 		String name = ipToName.get(ip);
@@ -202,7 +196,7 @@ public class CJamServer extends PApplet {
 				standaloneWriter.write("}");
 				standaloneWriter.close();
 			}
-			log.info(name + " txtfile written!");
+			println("Written!");
 			server.disconnect(client);
 			if (submitRateReached(name))
 				updateMainCanvas();
@@ -221,7 +215,7 @@ public class CJamServer extends PApplet {
 			reader.close();
 			File[] blobFiles = new File(innerClassPath).listFiles();
 			for (File blob : blobFiles) {
-				log.info("adding: " + blob);
+				System.out.println(blob);
 				reader = new FileReader(blob);
 				while ((read = reader.read()) != -1)
 					fw.write(read);
@@ -232,42 +226,40 @@ public class CJamServer extends PApplet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		startMC();
-	}
-
-	private void startMC() {
-		if (!MCRunning) // is set true by the canvas
-			MainCanvasAdd.main(new String[0]);
-		else {
-			MainCanvas.mc.dispose();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			MainCanvasAdd.main(new String[0]);
-		}
 	}
 
 	private boolean submitRateReached(String clientName) {
-		String timeS = ((updateTimeout - (millis() - updateTimer)) / 1000)
-				+ "s";
-		if (submits.contains(clientName)) {
-			log.info(clientName + " updated. Timer expires in " + timeS);
-			return false;
-		}
 		submits.add(clientName);
 		if (submits.size() >= canvasUdpateRate) {
 			submits.clear();
 			return true;
 		} else if (submits.size() == 1) {
 			updateTimer = millis();
-			log.info("1/" + canvasUdpateRate + " starting updateTimer: "
-					+ (updateTimeout / 1000) + "s");
-		} else {
-			log.info(submits.size() + "/" + canvasUdpateRate
-					+ " timer expires in: " + timeS);
 		}
 		return false;
 	}
+
+	/*
+	 * public void compile(File f) { String s = null; try { // run the Unix
+	 * "ps -ef" command // using the Runtime exec method: Process p =
+	 * Runtime.getRuntime().exec( "javac -cp " + blobPath + "core.jar;" +
+	 * blobPath + "CJam.jar" + f.getAbsolutePath());
+	 * 
+	 * BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+	 * p.getInputStream()));
+	 * 
+	 * BufferedReader stdError = new BufferedReader(new InputStreamReader(
+	 * p.getErrorStream()));
+	 * 
+	 * // read the output from the command //
+	 * System.out.println("Here is the standard output of the command:\n");
+	 * while ((s = stdInput.readLine()) != null) { System.out.println(s); }
+	 * 
+	 * // read any errors from the attempted command // System.out //
+	 * .println("Here is the standard error of the command (if any):\n"); while
+	 * ((s = stdError.readLine()) != null) { System.out.println(s); } } catch
+	 * (IOException e) {
+	 * System.out.println("exception happened - here's what I know: ");
+	 * e.printStackTrace(); System.exit(-1); } }
+	 */
 }
