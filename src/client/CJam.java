@@ -23,7 +23,7 @@ public class CJam {
 	static String[] deleteLines = { "initCJam", "import client.CJam", "image",
 			"autoBg", "CJam." };
 
-	Logger log = Logger.getAnonymousLogger();
+	public Logger log = Logger.getAnonymousLogger();
 
 	public static CJam initCJam(PApplet ap, String serverIp) {
 		return new CJam(ap, serverIp);
@@ -66,41 +66,25 @@ public class CJam {
 		File[] files = sketchpath_.listFiles();
 		StringBuilder sb = new StringBuilder();
 		for (File f : files) {
-			// the ! CJam thing at the end can go later
-			// println(f.getName());
 			if (f.isFile() && f.getName().equals(mainPde)) {
 				String lines[] = PApplet.loadStrings(f);
 				log.info("reading: " + f.getName());
+				ap.println(f.getName());
 				for (String l : lines) {
-					// println(l);
-					if (l.contains("setup()")) {
+					if (l.contains("setup()"))
 						l = "public " + l;
-						// println("setup found");
-					} else if (l.contains("draw()"))
+					else if (l.contains("draw()"))
 						l = "public " + l;
 					else if (l.contains("mousePressed()"))
 						l = "public " + l;
 					else if (l.contains("keyPressed()"))
 						l = "public " + l;
-					else {
+					else
 						for (String del : deleteLines)
 							if (l.contains(del)) {
 								l = "//DEL";
 								break;
 							}
-					}
-					// else if (l.contains("initCJam("))
-					// l = "";
-					// else if (l.contains("import client.CJam"))
-					// l = "";
-					// else if (l.contains("autoBg(")) // should be a static
-					// method
-					// // of CJam, is then easier
-					// // to filter
-					// l = "";
-					// // l = "pg = parent.createGraphics(800,600);";
-					// else if (l.contains("image("))
-					// l = "";
 					sb.append(l + System.getProperty("line.separator"));
 				}
 				// since only one file is supported atm return it
