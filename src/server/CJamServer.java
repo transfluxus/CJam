@@ -6,7 +6,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import processing.core.PApplet;
 import processing.net.Client;
@@ -40,12 +50,53 @@ public class CJamServer extends PApplet {
 	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
 
-	String nl = System.getProperty("line.separator");
+	private final String nl = System.getProperty("line.separator");
+
+	private static Logger log = Logger.getGlobal();
+
+	/**
+	 * wait until thi number of clients submitted they sketch until the canvas
+	 * is updated (and restarted)
+	 */
+	private final int canvasUdpateRate = 3;
+
+	ArrayList<String> submits = new ArrayList<String>();
+
+	/**
+	 * If clients have submitted their sketch (but rate is not) wait most until
+	 * updateTimeout for canvas update
+	 */
+	private final int updateTimeout = 30000;
+	private int updateTimer = 0;
 
 	@Override
 	public void setup() {
 		super.setup();
+		log.setLevel(Level.ALL);
+		// log.setUseParentHandlers(false);
+		// Handler h = new ConsoleHandler();
+		// h.setFormatter(new java.util.logging.SimpleFormatter() {
+		//
+		// @Override
+		// public String format(LogRecord record) {
+		// return record.getMessage() + " @T: " + time(record.getMillis())
+		// + "\n";
+		// }
+		//
+		// private String time(long millisecs) {
+		// SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
+		// Date resultdate = new Date(millisecs);
+		// return date_format.format(resultdate);
+		// }
+		// });
+		// log.addHandler(h);
 		server = new Server(this, port);
+		try {
+			log.info("CJamServer running at port:" + port + " "
+					+ InetAddress.getLocalHost());
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 		setFolders();
 		if (deleteOldInnerClasses)
 			deleteFilesIn(innerClassPath);
@@ -56,14 +107,16 @@ public class CJamServer extends PApplet {
 
 	private void deleteFilesIn(String path) {
 		File[] oldFiles = new File(path).listFiles();
-		for (File f : oldFiles)
+		for (File f : oldFiles) {
+			log.fine(f.getName() + "delted");
 			f.delete();
-
+		}
 	}
 
 	public static void setFolders() {
 		String p = new File("").getAbsolutePath();
 		mainPath = p.substring(0, p.length() - 3);
+		log.info("mainpath: " + mainPath);
 		blobPath = mainPath + "src\\blobs\\";
 		setupFilesPath = mainPath + "setupFiles\\";
 		innerClassPath = mainPath + "innerClasses\\";
@@ -77,19 +130,24 @@ public class CJamServer extends PApplet {
 		if (client != null) {
 			String s = client.readStringUntil(CJam.msgEndMarker);
 			if (s != null) {
-				System.out.println(s);
 				clientProcess(client, s.substring(0, s.length() - 1));
 			}
+		}
+		TimoutUpdate();
+	}
+
+	private void TimoutUpdate() {
+		if (submits.size() >= 1 && millis() - updateTimer >= updateTimeout) {
+			updateMainCanvas();
+			submits.clear();
 		}
 	}
 
 	public void clientProcess(Client client, String msg) {
-		System.out.println("Client msg: "
-				+ java.util.Calendar.getInstance().getTime());
 		String ip = client.ip();
-		System.out.println(msg);
-		// dumpToBlobTxt();
-		String[] lines = msg.split("\n");
+		log.fine("Client msg: " + ip + "\n" + msg);
+		System.out.println("Client msg: " + ip + "\n" + msg);
+		System.out.println(log.getLevel());
 		// println("received: " + cs);
 		// println(lines.length);
 		if (msg.startsWith("name:")) {
@@ -100,11 +158,13 @@ public class CJamServer extends PApplet {
 			return;
 		} else if (!ipToName.containsKey(ip)) {
 			String name = "blob_" + ip.replaceAll("\\.", "_");
-			System.out.println(name);
+			log.fine("new Client: " + name);
+			System.out.println("new Client: " + name);
 			ipToName.put(ip, name);
 		}
 		String name = ipToName.get(ip);
 		File innerClassFile = new File(innerClassPath + name + ".txt");
+		String[] lines = msg.split("\n");
 		try {
 			BufferedWriter innerClassWriter = new BufferedWriter(
 					new FileWriter(innerClassFile));
@@ -142,8 +202,8 @@ public class CJamServer extends PApplet {
 			}
 			println("Written!");
 			server.disconnect(client);
-			// compile(cFile);
-			updateMainCanvas();
+			if (submitRateReached(name))
+				updateMainCanvas();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -172,11 +232,16 @@ public class CJamServer extends PApplet {
 		}
 	}
 
-	// public void serverEvent(Server someServer, Client someClient) {
-	// println("We have a new client: " + someClient.ip());
-	// if (someClient.available() > 0)
-	// System.out.println(someClient.readString());
-	// }
+	private boolean submitRateReached(String clientName) {
+		submits.add(clientName);
+		if (submits.size() >= canvasUdpateRate) {
+			submits.clear();
+			return true;
+		} else if (submits.size() == 1) {
+			updateTimer = millis();
+		}
+		return false;
+	}
 
 	/*
 	 * public void compile(File f) { String s = null; try { // run the Unix

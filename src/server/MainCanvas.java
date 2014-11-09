@@ -30,7 +30,7 @@ public class MainCanvas extends PApplet {
 		}
 	}
 
-	public class local1 extends CJamBlob {
+	public class blob_127_0_0_1 extends CJamBlob {
 public void setup() {  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);}public void mousePressed() {}
 }
 }

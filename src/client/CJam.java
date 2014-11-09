@@ -1,6 +1,7 @@
 package client;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import processing.core.PApplet;
 import processing.net.Client;
@@ -22,6 +23,8 @@ public class CJam {
 	static String[] deleteLines = { "initCJam", "import client.CJam", "image",
 			"autoBg", "CJam." };
 
+	Logger log = Logger.getAnonymousLogger();
+
 	public static CJam initCJam(PApplet ap, String serverIp) {
 		return new CJam(ap, serverIp);
 	}
@@ -34,6 +37,7 @@ public class CJam {
 			ap.registerMethod("post", this);
 			if (!client.active())
 				throw new java.net.ConnectException("nope");
+			log.info("connected");
 		} catch (Exception exc) {
 			System.err.println("No Server. You are on your own");
 		}
@@ -42,7 +46,9 @@ public class CJam {
 	public void post() {
 		if (!written && client.active()) {
 			PApplet.println("sending");
-			client.write(readPDE());
+			String pde = readPDE();
+			log.info(pde);
+			client.write(pde);
 			client.write(msgEndMarker);
 			written = true;
 			PApplet.println("sent!");
@@ -55,15 +61,16 @@ public class CJam {
 
 	public String readPDE() {
 		File sketchpath_ = new File(ap.sketchPath);
+		String mainPde = ap.sketchPath.substring(ap.sketchPath
+				.lastIndexOf("\\") + 1) + ".pde";
 		File[] files = sketchpath_.listFiles();
 		StringBuilder sb = new StringBuilder();
 		for (File f : files) {
 			// the ! CJam thing at the end can go later
 			// println(f.getName());
-			if (f.isFile() && f.getName().endsWith(".pde")
-					&& !(f.getName().equals("CJam.pde"))) {
+			if (f.isFile() && f.getName().equals(mainPde)) {
 				String lines[] = PApplet.loadStrings(f);
-				// println("reading: " + f.getName());
+				log.info("reading: " + f.getName());
 				for (String l : lines) {
 					// println(l);
 					if (l.contains("setup()")) {

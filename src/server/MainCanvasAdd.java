@@ -17,9 +17,9 @@ public class MainCanvasAdd extends MainCanvas {
 		// blobs
 		super.draw();
 		// AFTER blobs
-		stroke(255);
-		strokeWeight(3);
-		line(0, 0, width, height);
+		// stroke(255);
+		// strokeWeight(3);
+		// line(0, 0, width, height);
 	}
 
 	public static void main(String args[]) {
