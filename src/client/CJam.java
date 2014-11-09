@@ -20,8 +20,8 @@ public class CJam {
 	public static int msgEndMarker = "###ENDOFMSG".hashCode();
 	public static String delMarker = "//DEL";
 
-	static String[] deleteLines = { "initCJam", "import client.CJam", "image",
-			"autoBg", "CJam." };
+	static String[] deleteLines = { "initCJam", "import", "image", "autoBg",
+			"CJam." };
 
 	public Logger log = Logger.getAnonymousLogger();
 
@@ -69,7 +69,7 @@ public class CJam {
 			if (f.isFile() && f.getName().equals(mainPde)) {
 				String lines[] = PApplet.loadStrings(f);
 				log.info("reading: " + f.getName());
-				ap.println(f.getName());
+				PApplet.println(f.getName());
 				for (String l : lines) {
 					if (l.contains("setup()"))
 						l = "public " + l;
