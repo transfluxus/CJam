@@ -1,3 +1,4 @@
 src/blobs/*
 innerClasses/*
-src/ServerMain.java
+src/server/MainCanvas.java
+src/server/MainCanvasAdd.java
