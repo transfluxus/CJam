@@ -4,9 +4,12 @@ import processing.core.PApplet;
 
 public class MainCanvasAdd extends MainCanvas {
 
+	public int n = 4;
+
 	@Override
 	public void setup() {
 		super.setup();
+		println(n);
 		// MORE SETUP?
 	}
 
@@ -17,9 +20,6 @@ public class MainCanvasAdd extends MainCanvas {
 		// blobs
 		super.draw();
 		// AFTER blobs
-		// stroke(255);
-		// strokeWeight(3);
-		// line(0, 0, width, height);
 	}
 
 	public static void main(String args[]) {

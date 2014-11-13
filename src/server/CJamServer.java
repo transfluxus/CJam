@@ -6,7 +6,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -70,31 +75,17 @@ public class CJamServer extends PApplet {
 	private final int updateTimeout = 30000;
 	private int updateTimer = 0;
 
+	private Canvas canvas;
+
 	public static boolean MCRunning = false;
 
 	@Override
 	public void setup() {
 		super.setup();
 		size(1, 1);
-		log.setLevel(Level.ALL);
-		log.setFilter(null);
-		log.setUseParentHandlers(false);
-		Handler h = new ConsoleHandler();
-		h.setFormatter(new SimpleFormatter() {
+		setFolders();
+		setupLogger();
 
-			@Override
-			public String format(LogRecord record) {
-				return record.getMessage() + " @T: " + time(record.getMillis())
-						+ "\n";
-			}
-
-			private String time(long millisecs) {
-				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
-				Date resultdate = new Date(millisecs);
-				return date_format.format(resultdate);
-			}
-		});
-		log.addHandler(h);
 		server = new Server(this, port);
 		try {
 			log.info("CJamServer running at port:" + port + " "
@@ -102,12 +93,12 @@ public class CJamServer extends PApplet {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		setFolders();
+
 		if (deleteOldInnerClasses)
 			deleteFilesIn(innerClassPath);
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
-		// System.out.println(blobPath);
+		// System.exit(1);
 	}
 
 	private void deleteFilesIn(String path) {
@@ -236,16 +227,19 @@ public class CJamServer extends PApplet {
 	}
 
 	private void startMC() {
-		if (!MCRunning) // is set true by the canvas
-			MainCanvasAdd.main(new String[0]);
-		else {
-			MainCanvas.mc.dispose();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			MainCanvasAdd.main(new String[0]);
+		System.out.println("starting");
+		ArrayList<File> files = new ArrayList<File>();
+		files.add(new File(mainPath + "src/server/MainCanvas.java"));
+		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
+
+		boolean success = new Compiler().compile(files);
+		System.out.println("compilation: " + success);
+
+		if (!MCRunning) {
+			canvas = new Canvas();
+		} else {
+			System.out.println("killing existing: " + MainCanvas.mc);
+			canvas.updateMCA();
 		}
 	}
 
@@ -269,5 +263,27 @@ public class CJamServer extends PApplet {
 					+ " timer expires in: " + timeS);
 		}
 		return false;
+	}
+
+	private void setupLogger() {
+		log.setLevel(Level.ALL);
+		log.setFilter(null);
+		log.setUseParentHandlers(false);
+		Handler h = new ConsoleHandler();
+		h.setFormatter(new SimpleFormatter() {
+
+			@Override
+			public String format(LogRecord record) {
+				return record.getMessage() + " @T: " + time(record.getMillis())
+						+ "\n";
+			}
+
+			private String time(long millisecs) {
+				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
+				Date resultdate = new Date(millisecs);
+				return date_format.format(resultdate);
+			}
+		});
+		log.addHandler(h);
 	}
 }
