@@ -1,31 +1,29 @@
 package server;
 
-import java.io.File;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 
-import processing.core.PApplet;
+import sun.awt.WindowClosingListener;
 
-public class Canvas extends JFrame {
+public class Canvas extends JFrame implements WindowListener {
 
 	MainCanvasAdd ap;
 
 	public Canvas() {
 		setSize(800, 800);
+		// setUndecorated(true);
 		setVisible(true);
 		updateMCA();
 		CJamServer.MCRunning = true;
+		addWindowListener(this);
 	}
 
 	public void updateMCA() {
 		if (ap != null)
 			getContentPane().remove(ap);
-		ap = loadnewAp();
+		ap = (MainCanvasAdd) Compiler.getAp();// loadnewAp();
 		ap.init();
 		getContentPane().add(ap);
 		if (!isVisible())
@@ -33,38 +31,33 @@ public class Canvas extends JFrame {
 		toFront();
 	}
 
-	private MainCanvasAdd loadnewAp() {
-		File classesDir = new File(CJamServer.mainPath + "bin/server/");
-		// The parent classloader
-		ClassLoader parentLoader = PApplet.class.getClassLoader();
-		URLClassLoader loader1;
-		try {
-			// System.out.println(classesDir.toURI().toURL());
-			loader1 = new URLClassLoader(
-					new URL[] { classesDir.toURI().toURL() }, parentLoader);
-			Class cls1 = loader1.loadClass("server.MainCanvasAdd");
-
-			// InvocationHandler handler = new InvocationHandler() {
-			// @Override
-			// public Object invoke(Object proxy, Method method, Object[] args)
-			// throws Throwable {
-			//
-			// // Get an instance of the up-to-date dynamic class
-			// Object dynacode = getUpToDateInstance();
-			//
-			// // Forward the invocation
-			// return method.invoke(dynacode, args);
-			// }
-			// };
-			// MainCanvasAdd MainCanvasAdd = (MainCanvasAdd) Proxy
-			// .newProxyInstance(MainCanvasAdd.class.getClassLoader(),
-			// new Class[] { MainCanvasAdd.class }, handler);
-
-			MainCanvasAdd mcA = (MainCanvasAdd) cls1.newInstance();
-			return mcA;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	@Override
+	public void windowOpened(WindowEvent e) {
 	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		CJamServer.MCRunning = false;
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+	}
+
 }

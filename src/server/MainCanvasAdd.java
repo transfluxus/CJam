@@ -4,7 +4,7 @@ import processing.core.PApplet;
 
 public class MainCanvasAdd extends MainCanvas {
 
-	public int n = 4;
+	public int n = 3;
 
 	@Override
 	public void setup() {
@@ -16,7 +16,7 @@ public class MainCanvasAdd extends MainCanvas {
 	@Override
 	public void draw() {
 		// BEFORE blobs
-		background(0);
+		// background(0);
 		// blobs
 		super.draw();
 		// AFTER blobs

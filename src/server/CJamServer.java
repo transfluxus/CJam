@@ -234,13 +234,13 @@ public class CJamServer extends PApplet {
 
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
-
-		if (!MCRunning) {
+		if (!success)
+			return;
+		if (!MCRunning)
 			canvas = new Canvas();
-		} else {
-			System.out.println("killing existing: " + MainCanvas.mc);
+		else
+			// System.out.println("killing existing: " + MainCanvas.mc);
 			canvas.updateMCA();
-		}
 	}
 
 	private boolean submitRateReached(String clientName) {
