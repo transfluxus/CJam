@@ -2,8 +2,9 @@ package server;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.tools.Diagnostic;
@@ -12,6 +13,8 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import processing.core.PApplet;
 
 public class Compiler {
 
@@ -39,7 +42,7 @@ public class Compiler {
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager,
 				diagnostics, optionList, null, compilationUnit);
 		boolean success = task.call();
-		for (Diagnostic diagnostic : diagnostics.getDiagnostics())
+		for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics())
 			System.out.format("Error on line %d in %s%n",
 					diagnostic.getLineNumber(), diagnostic.getSource());
 		try {
@@ -48,6 +51,27 @@ public class Compiler {
 			e.printStackTrace();
 		}
 		return success;
+	}
+
+	public static Object getAp() {
+		File classesDir = new File(CJamServer.mainPath + "bin/server/");
+		// The parent classloader
+		ClassLoader parentLoader = PApplet.class.getClassLoader();
+		URLClassLoader loader;
+		try {
+			// System.out.println(classesDir.toURI().toURL());
+			loader = new URLClassLoader(
+					new URL[] { classesDir.toURI().toURL() }, parentLoader);
+			Class<?> clazz = loader.loadClass("server.MainCanvasAdd");
+			loader.close();
+
+			MainCanvasAdd mcA = (MainCanvasAdd) clazz.newInstance();
+			return mcA;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+
 	}
 
 }
