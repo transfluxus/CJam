@@ -6,12 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -75,9 +70,9 @@ public class CJamServer extends PApplet {
 	private final int updateTimeout = 30000;
 	private int updateTimer = 0;
 
-	private Canvas canvas;
-
 	public static boolean MCRunning = false;
+
+	Process process;
 
 	@Override
 	public void setup() {
@@ -211,8 +206,23 @@ public class CJamServer extends PApplet {
 				fw.write(read);
 			reader.close();
 			File[] blobFiles = new File(innerClassPath).listFiles();
+			fw.write("	private CJamBlob[] loadBlobs() { "
+					+ nl
+					+ "System.out.println(getClass().getSuperclass().getName());"
+					+ nl
+					+ "int n = getClass().getSuperclass().getDeclaredClasses().length;"
+					+ nl + "CJamBlob[] blobs = new CJamBlob[n];" + nl);
+			int i = 0;
 			for (File blob : blobFiles) {
-				log.info("adding: " + blob);
+				String blobName = blob.getName();
+				blobName = blobName.substring(0, blobName.length() - 4);
+				fw.write("blobs[" + (i++) + "] = new " + blobName + "();" + nl);
+			}
+			fw.write("return blobs;}" + nl);
+			for (File blob : blobFiles) {
+				String blobName = blob.getName();
+				log.info("adding: " + blob + " . . ."
+						+ blobName.substring(0, blobName.length() - 4));
 				reader = new FileReader(blob);
 				while ((read = reader.read()) != -1)
 					fw.write(read);
@@ -230,17 +240,27 @@ public class CJamServer extends PApplet {
 		System.out.println("starting");
 		ArrayList<File> files = new ArrayList<File>();
 		files.add(new File(mainPath + "src/server/MainCanvas.java"));
-		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
-
+		// necessary?
 		boolean success = new Compiler().compile(files);
+		System.out.println("compilation: " + success);
+		files.clear();
+		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
+		success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
 		if (!success)
 			return;
-		if (!MCRunning)
-			canvas = new Canvas();
-		else
-			// System.out.println("killing existing: " + MainCanvas.mc);
-			canvas.updateMCA();
+		if (MCRunning)
+			process.destroy();
+
+		String p = "java -cp " + mainPath + "bin;" + mainPath + "bin/core.jar "
+				+ "server.MainCanvasAdd";
+		// System.out.println(p);
+		try {
+			process = Runtime.getRuntime().exec(p);
+			MCRunning = true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private boolean submitRateReached(String clientName) {
