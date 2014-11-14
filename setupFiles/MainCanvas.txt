@@ -6,12 +6,13 @@ public class MainCanvas extends PApplet {
 
 	CJamBlob blobs[];
 	public static MainCanvas mc;
+
 	
 	@Override
 	public void setup() {
 		super.setup();
 		size(800, 600);
-		blobs = BlobLoader.loadBlobs(this);
+		blobs = loadBlobs();
 		for (CJamBlob b : blobs) {
 			pushStyle();
 			b.setup();
@@ -21,6 +22,7 @@ public class MainCanvas extends PApplet {
 		mc = this;
 		CJamServer.MCRunning = true;
 	}
+
 
 	@Override
 	public void draw() {
