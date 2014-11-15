@@ -1,6 +1,5 @@
 package server;
 
-import processing.core.PFont;
 import processing.core.PStyle;
 
 public class PStyleCopy {

@@ -24,9 +24,6 @@ public class Compiler {
 		compiler = ToolProvider.getSystemJavaCompiler();
 		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
 
-		// This sets up the class path that the compiler will use.
-		// I've added the .jar file that contains the DoStuff interface within
-		// in it...
 		optionList = new ArrayList<String>();
 		optionList.add("-d");
 		optionList.add(CJamServer.mainPath + "bin");
