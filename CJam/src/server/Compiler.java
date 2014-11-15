@@ -24,9 +24,6 @@ public class Compiler {
 		compiler = ToolProvider.getSystemJavaCompiler();
 		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
 
-		// This sets up the class path that the compiler will use.
-		// I've added the .jar file that contains the DoStuff interface within
-		// in it...
 		optionList = new ArrayList<String>();
 		optionList.add("-d");
 		optionList.add(CJamServer.mainPath + "bin");
@@ -48,40 +45,5 @@ public class Compiler {
 		}
 		return success;
 	}
-
-	// public static Object getAp() {
-	// File classesDir = new File(CJamServer.mainPath + "bin/");
-	// try {
-	// System.out.println(classesDir.toURI().toURL());
-	// } catch (MalformedURLException e1) {
-	// e1.printStackTrace();
-	// }
-	// // The parent classloader
-	// ClassLoader parentLoader = Compiler.class.getClassLoader();
-	// // URLClassLoader loader;
-	// try {
-	// // System.out.println(classesDir.toURI().toURL());
-	// // loader = new URLClassLoader(
-	// // new URL[] { classesDir.toURI().toURL() }, parentLoader);
-	// // Class<?> clazz = loader.loadClass("server.MainCanvasAdd");
-	// MyClassLoader loader = new MyClassLoader(parentLoader);
-	// loader.loadClass(classesDir.getAbsolutePath() + "/",
-	// "server.MainCanvas");
-	// Class<?> clazz = loader.loadClass(classesDir.getAbsolutePath()
-	// + "/", "server.MainCanvasAdd");
-	// // loader.close();
-	// // System.out.println("#fields: " +
-	// // clazz.getDeclaredFields().length);
-	//
-	// // MainCanvasAdd mcA = (MainCanvasAdd) Class.forName(
-	// // "server.MainCanvasAdd").newInstance();// (MainCanvasAdd)
-	// PApplet mcA = (PApplet) clazz.newInstance();
-	// return mcA;
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// return null;
-	//
-	// }
 
 }

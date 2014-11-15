@@ -3,6 +3,7 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -27,26 +29,26 @@ import client.CJam;
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
 
-	Server server;
-	Client client;
+	private Server server;
+	private Client client;
 
-	public static String mainPath;
+	protected static String mainPath;
 	// where the java&class files of the clients go
-	public static String blobPath;
+	private static String blobPath;
 	/**
 	 * here are the blob-codes(format that gets into the MainCanvas) These are
 	 * just txt files-since they dont run on their own
 	 */
-	public static String innerClassPath;
-	public static String setupFilesPath;
-	public static File mainCanvasTxt;
-	public static File mainCanvasJava;
+	private static String innerClassPath;
+	private static String setupFilesPath;
+	private static File mainCanvasTxt;
+	private static File mainCanvasJava;
 
-	static final int port = 30303;
+	private static int port = 30303;
 
-	public boolean writeStandAlone = true;
-	public boolean deleteOldInnerClasses = true;
-	public boolean deleteOldStandalones = true;
+	private boolean writeStandAlone = true;
+	private boolean deleteOldInnerClasses = true;
+	private boolean deleteOldStandalones = true;
 
 	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
@@ -56,10 +58,10 @@ public class CJamServer extends PApplet {
 	private static Logger log = Logger.getGlobal();
 
 	/**
-	 * wait until thi number of clients submitted they sketch until the canvas
+	 * wait until this number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 1;
+	private int canvasUdpateRate = 1;
 
 	ArrayList<String> submits = new ArrayList<String>();
 
@@ -67,18 +69,25 @@ public class CJamServer extends PApplet {
 	 * If clients have submitted their sketch (but rate is not) wait most until
 	 * updateTimeout for canvas update
 	 */
-	private final int updateTimeout = 30000;
+	private int updateTimeout = 30000;
 	private int updateTimer = 0;
 
-	public static boolean MCRunning = false;
+	/**
+	 * set when the MainCanvas is running and needs to be destroyed
+	 */
+	private static boolean MCRunning = false;
 
-	Process process;
+	/**
+	 * this is the process running the MainCanvasAdd
+	 */
+	private Process process;
 
 	@Override
 	public void setup() {
 		super.setup();
 		size(1, 1);
 		setFolders();
+		setSettings();
 		setupLogger();
 
 		server = new Server(this, port);
@@ -88,12 +97,37 @@ public class CJamServer extends PApplet {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-
 		if (deleteOldInnerClasses)
 			deleteFilesIn(innerClassPath);
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
-		// System.exit(1);
+	}
+
+	private void setSettings() {
+		Properties properties = new Properties();
+		try {
+			properties.load(new FileReader(new File(mainPath
+					+ "server-setup.properties")));
+			port = Integer.valueOf(properties.getProperty("port"));
+			deleteOldInnerClasses = Boolean.valueOf(properties
+					.getProperty("deleteOldBlobs"));
+			writeStandAlone = Boolean.valueOf(properties
+					.getProperty("writeStandAlone"));
+			deleteOldStandalones = Boolean.valueOf(properties
+					.getProperty("deleteOldStandalones"));
+			canvasUdpateRate = Integer.valueOf(properties
+					.getProperty("canvasUdpateRate"));
+			updateTimeout = Integer.valueOf(properties
+					.getProperty("updateTimeout"));
+		} catch (FileNotFoundException e) {
+			System.err
+					.println("Propertiesfile not found. staying with default");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException nfe) {
+			System.err.println(nfe.getMessage() + nl
+					+ "Staying with the good old");
+		}
 	}
 
 	private void deleteFilesIn(String path) {
@@ -127,6 +161,9 @@ public class CJamServer extends PApplet {
 		TimoutUpdate();
 	}
 
+	/**
+	 * checks if the timerupdate is expired to restart the canvas
+	 */
 	private void TimoutUpdate() {
 		if (submits.size() >= 1 && (millis() - updateTimer) >= updateTimeout) {
 			updateMainCanvas();
@@ -201,10 +238,12 @@ public class CJamServer extends PApplet {
 		try {
 			FileReader reader = new FileReader(mainCanvasTxt);
 			FileWriter fw = new FileWriter(mainCanvasJava);
+			// write from the mainCanvas txt file (template into the java file)
 			int read = 0;
 			while ((read = reader.read()) != -1)
 				fw.write(read);
 			reader.close();
+			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
 			fw.write("	private CJamBlob[] loadBlobs() { "
 					+ nl
@@ -219,10 +258,9 @@ public class CJamServer extends PApplet {
 				fw.write("blobs[" + (i++) + "] = new " + blobName + "();" + nl);
 			}
 			fw.write("return blobs;}" + nl);
+			// add the blobs as inner classes
 			for (File blob : blobFiles) {
-				String blobName = blob.getName();
-				log.info("adding: " + blob + " . . ."
-						+ blobName.substring(0, blobName.length() - 4));
+				log.info("adding: " + blob);
 				reader = new FileReader(blob);
 				while ((read = reader.read()) != -1)
 					fw.write(read);
@@ -237,18 +275,16 @@ public class CJamServer extends PApplet {
 	}
 
 	private void startMC() {
-		System.out.println("starting");
+		System.out.println("compiling");
 		ArrayList<File> files = new ArrayList<File>();
 		files.add(new File(mainPath + "src/server/MainCanvas.java"));
-		// necessary?
+		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
-		files.clear();
-		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
-		success = new Compiler().compile(files);
-		System.out.println("compilation: " + success);
-		if (!success)
+		if (!success) {
+			System.err.println("Compilation failed. Actual Canvas remains");
 			return;
+		}
 		if (MCRunning)
 			process.destroy();
 
@@ -263,6 +299,14 @@ public class CJamServer extends PApplet {
 		}
 	}
 
+	/**
+	 * checks if the number of submits reached canvasUdpateRate. Multiple
+	 * submits by the same client will be registered and does not increate the
+	 * number of submits
+	 * 
+	 * @param clientName
+	 * @return true, if rate is reached
+	 */
 	private boolean submitRateReached(String clientName) {
 		String timeS = ((updateTimeout - (millis() - updateTimer)) / 1000)
 				+ "s";

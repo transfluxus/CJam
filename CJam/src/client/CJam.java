@@ -24,7 +24,7 @@ public class CJam {
 	static String[] deleteLines = { "initCJam", "import", "image", "autoBg",
 			"CJam." };
 
-	public Logger log = Logger.getAnonymousLogger();
+	public static Logger log = Logger.getAnonymousLogger();
 
 	public static CJam initCJam(PApplet ap, String serverIp) {
 		return new CJam(ap, serverIp);
@@ -33,7 +33,8 @@ public class CJam {
 	public CJam(PApplet ap, String serverIp) {
 		this.ap = ap;
 		ap.size(800, 600);
-		log.setLevel(Level.WARNING);
+		log.setLevel(Level.INFO);
+		// log.setLevel(Level.WARNING);
 		try {
 			log.info("connecting...");
 			client = new Client(ap, serverIp, port);

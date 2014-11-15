@@ -4,7 +4,6 @@ import processing.core.PApplet;
 
 public class MainCanvasAdd extends MainCanvas {
 
-
 	@Override
 	public void setup() {
 		super.setup();
