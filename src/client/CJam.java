@@ -66,7 +66,9 @@ public class CJam {
 	public String readPDE() {
 		File sketchpath_ = new File(ap.sketchPath);
 		String mainPde = ap.sketchPath.substring(ap.sketchPath
-				.lastIndexOf("\\") + 1) + ".pde";
+				.lastIndexOf(System.getProperty("file.separator")) + 1)
+				+ ".pde";
+		log.info("mainfolder: " + mainPde);
 		File[] files = sketchpath_.listFiles();
 		StringBuilder sb = new StringBuilder();
 		for (File f : files) {
