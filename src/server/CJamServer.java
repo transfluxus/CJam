@@ -250,14 +250,8 @@ public class CJamServer extends PApplet {
 		ArrayList<File> files = new ArrayList<File>();
 		files.add(new File(mainPath + "src/server/MainCanvas.java"));
 		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
-		// necessary?
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
-		// files.clear();
-		// success = new Compiler().compile(files);
-		// System.out.println("compilation: " + success);
-		// if (!success)
-		// return;
 		if (MCRunning)
 			process.destroy();
 
@@ -272,6 +266,14 @@ public class CJamServer extends PApplet {
 		}
 	}
 
+	/**
+	 * checks if the number of submits reached canvasUdpateRate. Multiple
+	 * submits by the same client will be registered and does not increate the
+	 * number of submits
+	 * 
+	 * @param clientName
+	 * @return true, if rate is reached
+	 */
 	private boolean submitRateReached(String clientName) {
 		String timeS = ((updateTimeout - (millis() - updateTimer)) / 1000)
 				+ "s";
