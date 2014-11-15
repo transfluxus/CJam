@@ -59,7 +59,7 @@ public class CJamServer extends PApplet {
 	 * wait until thi number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 3;
+	private final int canvasUdpateRate = 1;
 
 	ArrayList<String> submits = new ArrayList<String>();
 
@@ -70,9 +70,15 @@ public class CJamServer extends PApplet {
 	private final int updateTimeout = 30000;
 	private int updateTimer = 0;
 
-	public static boolean MCRunning = false;
+	/**
+	 * set when the MainCanvas is running and needs to be destroyed
+	 */
+	private static boolean MCRunning = false;
 
-	Process process;
+	/**
+	 * this is the process running the MainCanvasAdd
+	 */
+	private Process process;
 
 	@Override
 	public void setup() {
@@ -88,12 +94,10 @@ public class CJamServer extends PApplet {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-
 		if (deleteOldInnerClasses)
 			deleteFilesIn(innerClassPath);
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
-		// System.exit(1);
 	}
 
 	private void deleteFilesIn(String path) {
@@ -127,6 +131,9 @@ public class CJamServer extends PApplet {
 		TimoutUpdate();
 	}
 
+	/**
+	 * checks if the timerupdate is expired to restart the canvas
+	 */
 	private void TimoutUpdate() {
 		if (submits.size() >= 1 && (millis() - updateTimer) >= updateTimeout) {
 			updateMainCanvas();
@@ -201,10 +208,13 @@ public class CJamServer extends PApplet {
 		try {
 			FileReader reader = new FileReader(mainCanvasTxt);
 			FileWriter fw = new FileWriter(mainCanvasJava);
+			// write from the mainCanvas txt file (template into the java file)
 			int read = 0;
 			while ((read = reader.read()) != -1)
 				fw.write(read);
 			reader.close();
+			// some additional line to load the inner classes (no reflection
+			// shit)
 			File[] blobFiles = new File(innerClassPath).listFiles();
 			fw.write("	private CJamBlob[] loadBlobs() { "
 					+ nl
@@ -219,10 +229,9 @@ public class CJamServer extends PApplet {
 				fw.write("blobs[" + (i++) + "] = new " + blobName + "();" + nl);
 			}
 			fw.write("return blobs;}" + nl);
+			// add the blobs as inner classes
 			for (File blob : blobFiles) {
-				String blobName = blob.getName();
-				log.info("adding: " + blob + " . . ."
-						+ blobName.substring(0, blobName.length() - 4));
+				log.info("adding: " + blob);
 				reader = new FileReader(blob);
 				while ((read = reader.read()) != -1)
 					fw.write(read);
@@ -237,18 +246,18 @@ public class CJamServer extends PApplet {
 	}
 
 	private void startMC() {
-		System.out.println("starting");
+		System.out.println("compiling");
 		ArrayList<File> files = new ArrayList<File>();
 		files.add(new File(mainPath + "src/server/MainCanvas.java"));
+		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
 		// necessary?
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
-		files.clear();
-		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
-		success = new Compiler().compile(files);
-		System.out.println("compilation: " + success);
-		if (!success)
-			return;
+		// files.clear();
+		// success = new Compiler().compile(files);
+		// System.out.println("compilation: " + success);
+		// if (!success)
+		// return;
 		if (MCRunning)
 			process.destroy();
 
