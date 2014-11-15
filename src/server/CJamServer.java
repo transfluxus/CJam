@@ -213,8 +213,7 @@ public class CJamServer extends PApplet {
 			while ((read = reader.read()) != -1)
 				fw.write(read);
 			reader.close();
-			// some additional line to load the inner classes (no reflection
-			// shit)
+			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
 			fw.write("	private CJamBlob[] loadBlobs() { "
 					+ nl
@@ -252,6 +251,10 @@ public class CJamServer extends PApplet {
 		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
+		if (!success) {
+			System.err.println("Compilation failed. Actual Canvas remains");
+			return;
+		}
 		if (MCRunning)
 			process.destroy();
 
