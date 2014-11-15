@@ -59,7 +59,7 @@ public class CJamServer extends PApplet {
 	 * wait until thi number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 1;
+	private final int canvasUdpateRate = 3;
 
 	ArrayList<String> submits = new ArrayList<String>();
 

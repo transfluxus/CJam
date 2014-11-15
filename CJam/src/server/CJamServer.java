@@ -12,7 +12,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import processing.core.PApplet;
 import processing.net.Client;
@@ -48,13 +53,13 @@ public class CJamServer extends PApplet {
 
 	private final String nl = System.getProperty("line.separator");
 
-	private Logger log = Logger.getGlobal();
+	private static Logger log = Logger.getGlobal();
 
 	/**
 	 * wait until thi number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 3;
+	private final int canvasUdpateRate = 1;
 
 	ArrayList<String> submits = new ArrayList<String>();
 
@@ -65,27 +70,17 @@ public class CJamServer extends PApplet {
 	private final int updateTimeout = 30000;
 	private int updateTimer = 0;
 
+	public static boolean MCRunning = false;
+
+	Process process;
+
 	@Override
 	public void setup() {
-//		super.setup();
-		size(400, 100);
-		log.setLevel(Level.INFO);
-		log.setUseParentHandlers(false);
-		Handler h = new ConsoleHandler();
-		h.setFormatter(new SimpleFormatter() {
-			@Override
-			public String format(LogRecord record) {
-				System.out.println("na");
-				return record.getMessage() + " @T: " + time(record.getMillis())
-						+ "\n";
-			}
-			private String time(long millisecs) {
-				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
-				Date resultdate = new Date(millisecs);
-				return date_format.format(resultdate);
-			}
-		});
-		log.addHandler(h);
+		super.setup();
+		size(1, 1);
+		setFolders();
+		setupLogger();
+
 		server = new Server(this, port);
 		try {
 			log.info("CJamServer running at port:" + port + " "
@@ -93,12 +88,12 @@ public class CJamServer extends PApplet {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		setFolders();
+
 		if (deleteOldInnerClasses)
 			deleteFilesIn(innerClassPath);
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
-		// System.out.println(blobPath);
+		// System.exit(1);
 	}
 
 	private void deleteFilesIn(String path) {
@@ -133,7 +128,7 @@ public class CJamServer extends PApplet {
 	}
 
 	private void TimoutUpdate() {
-		if (submits.size() >= 1 && millis() - updateTimer >= updateTimeout) {
+		if (submits.size() >= 1 && (millis() - updateTimer) >= updateTimeout) {
 			updateMainCanvas();
 			submits.clear();
 		}
@@ -141,9 +136,7 @@ public class CJamServer extends PApplet {
 
 	public void clientProcess(Client client, String msg) {
 		String ip = client.ip();
-		log.fine("Client msg: " + ip + "\n" + msg);
-		System.out.println("Client msg: " + ip + "\n" + msg);
-		System.out.println(log.getLevel());
+		log.info("Client msg: " + ip + "\n" + msg);
 		// println("received: " + cs);
 		// println(lines.length);
 		if (msg.startsWith("name:")) {
@@ -154,8 +147,7 @@ public class CJamServer extends PApplet {
 			return;
 		} else if (!ipToName.containsKey(ip)) {
 			String name = "blob_" + ip.replaceAll("\\.", "_");
-			log.fine("new Client: " + name);
-			System.out.println("new Client: " + name);
+			log.info("new Client: " + name);
 			ipToName.put(ip, name);
 		}
 		String name = ipToName.get(ip);
@@ -196,7 +188,7 @@ public class CJamServer extends PApplet {
 				standaloneWriter.write("}");
 				standaloneWriter.close();
 			}
-			println("Written!");
+			log.info(name + " txtfile written!");
 			server.disconnect(client);
 			if (submitRateReached(name))
 				updateMainCanvas();
@@ -214,8 +206,23 @@ public class CJamServer extends PApplet {
 				fw.write(read);
 			reader.close();
 			File[] blobFiles = new File(innerClassPath).listFiles();
+			fw.write("	private CJamBlob[] loadBlobs() { "
+					+ nl
+					+ "System.out.println(getClass().getSuperclass().getName());"
+					+ nl
+					+ "int n = getClass().getSuperclass().getDeclaredClasses().length;"
+					+ nl + "CJamBlob[] blobs = new CJamBlob[n];" + nl);
+			int i = 0;
 			for (File blob : blobFiles) {
-				System.out.println(blob);
+				String blobName = blob.getName();
+				blobName = blobName.substring(0, blobName.length() - 4);
+				fw.write("blobs[" + (i++) + "] = new " + blobName + "();" + nl);
+			}
+			fw.write("return blobs;}" + nl);
+			for (File blob : blobFiles) {
+				String blobName = blob.getName();
+				log.info("adding: " + blob + " . . ."
+						+ blobName.substring(0, blobName.length() - 4));
 				reader = new FileReader(blob);
 				while ((read = reader.read()) != -1)
 					fw.write(read);
@@ -226,40 +233,77 @@ public class CJamServer extends PApplet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		startMC();
+	}
+
+	private void startMC() {
+		System.out.println("starting");
+		ArrayList<File> files = new ArrayList<File>();
+		files.add(new File(mainPath + "src/server/MainCanvas.java"));
+		// necessary?
+		boolean success = new Compiler().compile(files);
+		System.out.println("compilation: " + success);
+		files.clear();
+		files.add(new File(mainPath + "src/server/MainCanvasAdd.java"));
+		success = new Compiler().compile(files);
+		System.out.println("compilation: " + success);
+		if (!success)
+			return;
+		if (MCRunning)
+			process.destroy();
+
+		String p = "java -cp " + mainPath + "bin;" + mainPath + "bin/core.jar "
+				+ "server.MainCanvasAdd";
+		// System.out.println(p);
+		try {
+			process = Runtime.getRuntime().exec(p);
+			MCRunning = true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private boolean submitRateReached(String clientName) {
+		String timeS = ((updateTimeout - (millis() - updateTimer)) / 1000)
+				+ "s";
+		if (submits.contains(clientName)) {
+			log.info(clientName + " updated. Timer expires in " + timeS);
+			return false;
+		}
 		submits.add(clientName);
 		if (submits.size() >= canvasUdpateRate) {
 			submits.clear();
 			return true;
 		} else if (submits.size() == 1) {
 			updateTimer = millis();
+			log.info("1/" + canvasUdpateRate + " starting updateTimer: "
+					+ (updateTimeout / 1000) + "s");
+		} else {
+			log.info(submits.size() + "/" + canvasUdpateRate
+					+ " timer expires in: " + timeS);
 		}
 		return false;
 	}
 
-	/*
-	 * public void compile(File f) { String s = null; try { // run the Unix
-	 * "ps -ef" command // using the Runtime exec method: Process p =
-	 * Runtime.getRuntime().exec( "javac -cp " + blobPath + "core.jar;" +
-	 * blobPath + "CJam.jar" + f.getAbsolutePath());
-	 * 
-	 * BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-	 * p.getInputStream()));
-	 * 
-	 * BufferedReader stdError = new BufferedReader(new InputStreamReader(
-	 * p.getErrorStream()));
-	 * 
-	 * // read the output from the command //
-	 * System.out.println("Here is the standard output of the command:\n");
-	 * while ((s = stdInput.readLine()) != null) { System.out.println(s); }
-	 * 
-	 * // read any errors from the attempted command // System.out //
-	 * .println("Here is the standard error of the command (if any):\n"); while
-	 * ((s = stdError.readLine()) != null) { System.out.println(s); } } catch
-	 * (IOException e) {
-	 * System.out.println("exception happened - here's what I know: ");
-	 * e.printStackTrace(); System.exit(-1); } }
-	 */
+	private void setupLogger() {
+		log.setLevel(Level.ALL);
+		log.setFilter(null);
+		log.setUseParentHandlers(false);
+		Handler h = new ConsoleHandler();
+		h.setFormatter(new SimpleFormatter() {
+
+			@Override
+			public String format(LogRecord record) {
+				return record.getMessage() + " @T: " + time(record.getMillis())
+						+ "\n";
+			}
+
+			private String time(long millisecs) {
+				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
+				Date resultdate = new Date(millisecs);
+				return date_format.format(resultdate);
+			}
+		});
+		log.addHandler(h);
+	}
 }

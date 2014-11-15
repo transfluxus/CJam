@@ -4,13 +4,9 @@ import processing.core.PApplet;
 
 public class MainCanvasAdd extends MainCanvas {
 
-	public int n = 3;
-	public int nn = 3;
-
 	@Override
 	public void setup() {
 		super.setup();
-		println(n);
 		// MORE SETUP?
 	}
 

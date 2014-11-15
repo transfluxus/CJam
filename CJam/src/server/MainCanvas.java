@@ -5,18 +5,21 @@ import processing.core.PApplet;
 public class MainCanvas extends PApplet {
 
 	CJamBlob blobs[];
+	public static MainCanvas mc;
 
 	@Override
 	public void setup() {
 		super.setup();
 		size(800, 600);
-		blobs = BlobLoader.loadBlobs(this);
+		blobs = loadBlobs();
 		for (CJamBlob b : blobs) {
 			pushStyle();
 			b.setup();
 			b.style = PStyleCopy.copyStyle(g.getStyle());
 			popStyle();
 		}
+		mc = this;
+		CJamServer.MCRunning = true;
 	}
 
 	@Override
@@ -30,7 +33,25 @@ public class MainCanvas extends PApplet {
 		}
 	}
 
+	private CJamBlob[] loadBlobs() {
+		int n = getClass().getSuperclass().getDeclaredClasses().length;
+		CJamBlob[] blobs = new CJamBlob[n];
+		blobs[0] = new blob_127_0_0_1();
+		return blobs;
+	}
+
 	public class blob_127_0_0_1 extends CJamBlob {
-public void setup() {  background(0);}public void draw() {  fill(255,100,0);  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);}public void mousePressed() {}
-}
+
+		@Override
+		public void setup() {
+		}
+
+		@Override
+		public void draw() {
+		}
+
+		public void mousePressed() {
+		}
+
+	}
 }
