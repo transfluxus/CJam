@@ -3,6 +3,7 @@ package server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -27,26 +29,26 @@ import client.CJam;
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
 
-	Server server;
-	Client client;
+	private Server server;
+	private Client client;
 
-	public static String mainPath;
+	protected static String mainPath;
 	// where the java&class files of the clients go
-	public static String blobPath;
+	private static String blobPath;
 	/**
 	 * here are the blob-codes(format that gets into the MainCanvas) These are
 	 * just txt files-since they dont run on their own
 	 */
-	public static String innerClassPath;
-	public static String setupFilesPath;
-	public static File mainCanvasTxt;
-	public static File mainCanvasJava;
+	private static String innerClassPath;
+	private static String setupFilesPath;
+	private static File mainCanvasTxt;
+	private static File mainCanvasJava;
 
-	static final int port = 30303;
+	private static int port = 30303;
 
-	public boolean writeStandAlone = true;
-	public boolean deleteOldInnerClasses = true;
-	public boolean deleteOldStandalones = true;
+	private boolean writeStandAlone = true;
+	private boolean deleteOldInnerClasses = true;
+	private boolean deleteOldStandalones = true;
 
 	// default-names are blob_ipAddress(where _ is used instead of .)
 	HashMap<String, String> ipToName = new HashMap<>();
@@ -56,10 +58,10 @@ public class CJamServer extends PApplet {
 	private static Logger log = Logger.getGlobal();
 
 	/**
-	 * wait until thi number of clients submitted they sketch until the canvas
+	 * wait until this number of clients submitted they sketch until the canvas
 	 * is updated (and restarted)
 	 */
-	private final int canvasUdpateRate = 1;
+	private int canvasUdpateRate = 1;
 
 	ArrayList<String> submits = new ArrayList<String>();
 
@@ -67,7 +69,7 @@ public class CJamServer extends PApplet {
 	 * If clients have submitted their sketch (but rate is not) wait most until
 	 * updateTimeout for canvas update
 	 */
-	private final int updateTimeout = 30000;
+	private int updateTimeout = 30000;
 	private int updateTimer = 0;
 
 	/**
@@ -85,6 +87,7 @@ public class CJamServer extends PApplet {
 		super.setup();
 		size(1, 1);
 		setFolders();
+		setSettings();
 		setupLogger();
 
 		server = new Server(this, port);
@@ -98,6 +101,33 @@ public class CJamServer extends PApplet {
 			deleteFilesIn(innerClassPath);
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
+	}
+
+	private void setSettings() {
+		Properties properties = new Properties();
+		try {
+			properties.load(new FileReader(new File(mainPath
+					+ "server-setup.properties")));
+			port = Integer.valueOf(properties.getProperty("port"));
+			deleteOldInnerClasses = Boolean.valueOf(properties
+					.getProperty("deleteOldBlobs"));
+			writeStandAlone = Boolean.valueOf(properties
+					.getProperty("writeStandAlone"));
+			deleteOldStandalones = Boolean.valueOf(properties
+					.getProperty("deleteOldStandalones"));
+			canvasUdpateRate = Integer.valueOf(properties
+					.getProperty("canvasUdpateRate"));
+			updateTimeout = Integer.valueOf(properties
+					.getProperty("updateTimeout"));
+		} catch (FileNotFoundException e) {
+			System.err
+					.println("Propertiesfile not found. staying with default");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException nfe) {
+			System.err.println(nfe.getMessage() + nl
+					+ "Staying with the good old");
+		}
 	}
 
 	private void deleteFilesIn(String path) {
