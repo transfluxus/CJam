@@ -124,6 +124,7 @@ public class CJamServer extends PApplet {
                     .println( "Propertiesfile not found. staying with default" );
         } catch ( IOException e ) {
             e.printStackTrace( );
+            e.printStackTrace( );
         } catch ( NumberFormatException nfe ) {
             System.err.println( nfe.getMessage( ) + nl
                     + "Staying with the good old" );
@@ -296,9 +297,9 @@ public class CJamServer extends PApplet {
         if ( MCRunning )
             process.destroy( );
 
-        String p = "java -cp " + mainPath + "bin;" + mainPath + "bin/core.jar "
+        String p = "java -cp " + mainPath + File.separator + "bin;" + mainPath + File.separator + "bin"+File.separator+"core.jar "
                 + "server.MainCanvasAdd";
-        // System.out.println(p);
+         System.out.println(p);
         try {
             process = Runtime.getRuntime( ).exec( p );
             MCRunning = true;

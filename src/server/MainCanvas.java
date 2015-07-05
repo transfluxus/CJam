@@ -9,7 +9,7 @@ public class MainCanvas extends PApplet {
     @Override
     public void setup () {
         super.setup( );
-        size( 800, 600 );
+        size( 1920, 1080 );
         blobs = loadBlobs( );
         for ( CJamBlob b : blobs ) {
             pushStyle( );
@@ -31,8 +31,6 @@ public class MainCanvas extends PApplet {
         }
     }
 
-
-
     private CJamBlob[] loadBlobs () {
         System.out.println( getClass( ).getSuperclass( ).getName( ) );
         int n = getClass( ).getSuperclass( ).getDeclaredClasses( ).length;
@@ -41,17 +39,17 @@ public class MainCanvas extends PApplet {
         return blobs;
     }
 
-public class blob_192_168_2_124 extends CJamBlob {
+    public class blob_192_168_2_124 extends CJamBlob {
 
-    public void setup () {
-        background( 0 );
+        public void setup () {
+            background( 0 );
+        }
+
+        public void draw () {
+            fill( 255, 100, 0 );
+            ellipse( sin( frameCount * 0.01f ) * width / 2, height / 2, 30, 30 );
+            int i = 0;
+        }
+
     }
-
-    public void draw () {
-        fill( 255, 100, 0 );
-        ellipse( sin( frameCount * 0.01f ) * width / 2, height / 2, 30, 30 );
-        int i = 0;
-    }
-
-}
 }
