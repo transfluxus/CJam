@@ -134,7 +134,6 @@ public class CJamServer extends PApplet {
 
 	private void deleteFilesIn(String path) {
 		File[] oldFiles = new File(path).listFiles();
-		System.out.println(path);
 		for (File f : oldFiles) {
 			log.fine(f.getName() + "delted");
 			f.delete();
@@ -152,7 +151,6 @@ public class CJamServer extends PApplet {
 		createPathIfNotThere(setupFilesPath);
 		innerClassPath = mainPath + separator + "innerClasses"
 				+ separator;
-		System.out.println("cool "+innerClassPath);
 		createPathIfNotThere(innerClassPath);
 		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
 		mainCanvasJava = new File(mainPath + separator + "src"
