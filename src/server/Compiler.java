@@ -26,7 +26,7 @@ public class Compiler {
 
 		optionList = new ArrayList<String>();
 		optionList.add("-d");
-		optionList.add(CJamServer.mainPath + "bin");
+		optionList.add(CJamServer.mainPath + File.separator + "bin");
 	}
 
 	public boolean compile(List<File> files) {

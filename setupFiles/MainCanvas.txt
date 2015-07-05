@@ -9,7 +9,7 @@ public class MainCanvas extends PApplet {
 	@Override
 	public void setup() {
 		super.setup();
-		size(800, 600);
+		size(1920, 1080);
 		blobs = loadBlobs();
 		for (CJamBlob b : blobs) {
 			pushStyle();
@@ -30,5 +30,3 @@ public class MainCanvas extends PApplet {
 			popStyle();
 		}
 	}
-
-	
