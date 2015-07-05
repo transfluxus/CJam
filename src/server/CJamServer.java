@@ -42,7 +42,9 @@ public class CJamServer extends PApplet {
 	private static String innerClassPath;
 	private static String setupFilesPath;
 	private static File mainCanvasTxt;
+	private static File mainCanvasAddTxt;
 	private static File mainCanvasJava;
+	private static File mainCanvasAddJava;
 
 	private static int port = 30303;
 
@@ -151,9 +153,12 @@ public class CJamServer extends PApplet {
 		innerClassPath = mainPath + separator + "innerClasses" + separator;
 
 		createPathIfNotThere(innerClassPath);
-		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
+		mainCanvasTxt = new File(setupFilesPath + "MainCanvas.txt");
+		mainCanvasAddTxt = new File( setupFilesPath + "MainCanvasAdd.txt");
 		mainCanvasJava = new File(mainPath + separator + "src" + separator
 				+ "server" + separator + "MainCanvas.java");
+		mainCanvasAddJava = new File(mainPath + separator + "src" + separator
+				+ "server" + separator + "MainCanvasAdd.java");
 	}
 
 	private static void createPathIfNotThere(String pathName) {
@@ -236,14 +241,14 @@ public class CJamServer extends PApplet {
 			}
 			innerClassWriter.write(nl);
 			innerClassWriter.write("}");
-			innerClassWriter.close();
+			innerClassWriter.close( );
 			if (writeStandAlone) {
 				standaloneWriter.write(nl);
 				standaloneWriter.write("}");
 				standaloneWriter.close();
 			}
-			log.info(name + " txtfile written!");
-			server.disconnect(client);
+			log.info( name + " txtfile written!" );
+			server.disconnect( client );
 			if (submitRateReached(name))
 				updateMainCanvas();
 		} catch (IOException e) {
@@ -263,6 +268,15 @@ public class CJamServer extends PApplet {
 			while ((read = reader.read()) != -1)
 				fw.write(read);
 			reader.close();
+
+			FileReader readerMainCanvasAdd = new FileReader( mainCanvasAddTxt );
+			FileWriter writerMainCanvasAdd = new FileWriter( mainCanvasAddJava );
+			int read2 = 0;
+			while (( read2 = readerMainCanvasAdd.read()) != -1 ) {
+				writerMainCanvasAdd.write( read2 );
+			}
+			writerMainCanvasAdd.close();
+
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
 			fw.write("	private CJamBlob[] loadBlobs() { "
@@ -287,7 +301,7 @@ public class CJamServer extends PApplet {
 				reader.close();
 			}
 			fw.write(nl + "}" + nl);
-			fw.close();
+			fw.close( );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
