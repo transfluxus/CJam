@@ -134,6 +134,7 @@ public class CJamServer extends PApplet {
 
 	private void deleteFilesIn(String path) {
 		File[] oldFiles = new File(path).listFiles();
+		System.out.println(path);
 		for (File f : oldFiles) {
 			log.fine(f.getName() + "delted");
 			f.delete();
@@ -141,20 +142,35 @@ public class CJamServer extends PApplet {
 	}
 
 	public static void setFolders() {
-		String p = new File("").getAbsolutePath();
-		mainPath = p;// p.substring( 0, p.length( ) - 3 );
+		mainPath= new File("").getAbsolutePath(); // .substring( 0, p.length( ) - 3 );
 		log.info("mainpath: " + mainPath);
-		blobPath = mainPath + File.separator + "blobs" + File.separator;
-		setupFilesPath = mainPath + File.separator + "setupFiles"
-				+ File.separator;
-		innerClassPath = mainPath + File.separator + "innerClasses"
-				+ File.separator;
+		String separator = File.separator;
+		blobPath = mainPath + separator + "blobs" + separator;
+		createPathIfNotThere(blobPath);
+		setupFilesPath = mainPath + separator + "setupFiles"
+				+ separator;
+		createPathIfNotThere(setupFilesPath);
+		innerClassPath = mainPath + separator + "innerClasses"
+				+ separator;
+		System.out.println("cool "+innerClassPath);
+		createPathIfNotThere(innerClassPath);
 		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
-		mainCanvasJava = new File(mainPath + File.separator + "src"
-				+ File.separator + "server" + File.separator
+		mainCanvasJava = new File(mainPath + separator + "src"
+				+ separator + "server" +separator
 				+ "MainCanvas.java");
 	}
 
+	private static void createPathIfNotThere(String pathName) {
+		File path = new File(pathName);
+		if(!path.exists())
+			try {
+				path.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+	
+	
 	@Override
 	public void draw() {
 		client = server.available();
