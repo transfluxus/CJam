@@ -24,15 +24,14 @@ import processing.net.Client;
 import processing.net.Server;
 import client.CJam;
 
-import com.jogamp.common.net.asset.Handler;
-import com.jogamp.opengl.util.packrect.Level;
 
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
 
+	// net Server 
 	private Server server;
-	private Client client;
 
+	// path of the Project
 	protected static String mainPath;
 	// where the java&class files of the clients go
 	private static String blobPath;
@@ -169,7 +168,7 @@ public class CJamServer extends PApplet {
 
 	@Override
 	public void draw() {
-		client = server.available();
+		Client client = server.available();
 		if (client != null) {
 			String s = client.readStringUntil(CJam.msgEndMarker);
 			if (s != null) {
@@ -252,6 +251,9 @@ public class CJamServer extends PApplet {
 		}
 	}
 
+	/**
+	 * Generates the MainCanvas.java out txt
+	 */
 	private void updateMainCanvas() {
 		try {
 			FileReader reader = new FileReader(mainCanvasTxt);
