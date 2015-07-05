@@ -3,3 +3,4 @@ innerClasses/*
 src/server/MainCanvas.java
 src/server/MainCanvasAdd.java
 bin/**
+/bin/

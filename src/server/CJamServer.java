@@ -14,17 +14,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 import processing.core.PApplet;
 import processing.net.Client;
 import processing.net.Server;
 import client.CJam;
+
+import com.jogamp.common.net.asset.Handler;
+import com.jogamp.opengl.util.packrect.Level;
 
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
@@ -86,7 +84,11 @@ public class CJamServer extends PApplet {
 	public void setup() {
 		super.setup();
 		size(1, 1);
-		setFolders();
+		try {
+			setFolders();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		setSettings();
 		setupLogger();
 
@@ -97,8 +99,9 @@ public class CJamServer extends PApplet {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		if (deleteOldInnerClasses)
+		if (deleteOldInnerClasses) {
 			deleteFilesIn(innerClassPath);
+		}
 		if (deleteOldStandalones)
 			deleteFilesIn(blobPath);
 	}
@@ -138,17 +141,32 @@ public class CJamServer extends PApplet {
 		}
 	}
 
-	public static void setFolders() {
+	public static void setFolders() throws IOException {
 		String p = new File("").getAbsolutePath();
 		mainPath = p.substring(0, p.length() - 3);
+		String pathSeparator = File.pathSeparator;
 		log.info("mainpath: " + mainPath);
-		blobPath = mainPath + "src\\blobs\\";
-		setupFilesPath = mainPath + "setupFiles\\";
-		innerClassPath = mainPath + "innerClasses\\";
+		blobPath = mainPath + "src"+pathSeparator+"blobs"+pathSeparator;		
+		createPathIfNotThere(blobPath);
+		setupFilesPath = mainPath + "setupFiles"+pathSeparator;
+		createPathIfNotThere(setupFilesPath);
+
+		innerClassPath = mainPath + "innerClasses"+pathSeparator;
+		createPathIfNotThere(innerClassPath);
 		mainCanvasTxt = new File(setupFilesPath + "mainCanvas.txt");
-		mainCanvasJava = new File(mainPath + "\\src\\server\\MainCanvas.java");
+		mainCanvasJava = new File(mainPath + pathSeparator+"src"+pathSeparator+"server"+pathSeparator+"MainCanvas.java");
 	}
 
+	private static void createPathIfNotThere(String pathName) {
+		File path = new File(pathName);
+		if(!path.exists())
+			try {
+				path.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+	
 	@Override
 	public void draw() {
 		client = server.available();
@@ -330,10 +348,10 @@ public class CJamServer extends PApplet {
 	}
 
 	private void setupLogger() {
-		log.setLevel(Level.ALL);
+		log.setLevel(java.util.logging.Level.ALL);
 		log.setFilter(null);
 		log.setUseParentHandlers(false);
-		Handler h = new ConsoleHandler();
+		ConsoleHandler h = new ConsoleHandler();
 		h.setFormatter(new SimpleFormatter() {
 
 			@Override
