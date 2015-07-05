@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- I needed a newer ANT Version:
 http://ant.apache.org/bindownload.cgi?Preferred=ftp://apache.mirrors.pair.com/ -->
-<project name="CJam" default="clientLib" basedir="."> 
-  <target name="clientLib">
-  	<echo>Creating CJam library (for clients)</echo>
-  	<jar includes="client/*.class" basedir="bin" destfile="CJam/library/CJam.jar"/>
-    <copy todir="CJam/src">
-      <fileset dir="src">
-      	<exclude name="**/blobs/**" />
-      </fileset>
-    </copy>
-  	<echo>Done! Copy the CJam folder into the library folder of P5</echo>
-  </target>
+<project name="CJam" default="clientLib" basedir=".">
+    <target name="clientLib">
+        <echo>Creating CJam library (for clients)</echo>
+        <jar includes="client/*.class" basedir="bin" destfile="CJam/library/CJam.jar"/>
+        <copy todir="CJam/src">
+            <fileset dir="src">
+                <exclude name="**/blobs/**"/>
+            </fileset>
+        </copy>
+        <echo>Done! Copy the CJam folder into the library folder of P5</echo>
+    </target>
 </project>
