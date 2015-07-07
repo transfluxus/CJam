@@ -13,8 +13,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -24,12 +26,12 @@ import processing.net.Client;
 import processing.net.Server;
 import client.CJam;
 
-
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
 
-	// net Server 
+	// net Server
 	private Server server;
+	public final static String serverPropertiesFile = "server.properties";
 
 	// path of the Project
 	protected static String mainPath;
@@ -88,9 +90,9 @@ public class CJamServer extends PApplet {
 	public void setup() {
 		super.setup();
 		size(1, 1);
+		setupLogger();
 		setFolders();
 		setSettings();
-		setupLogger();
 
 		server = new Server(this, port);
 		try {
@@ -109,32 +111,62 @@ public class CJamServer extends PApplet {
 		Properties properties = new Properties();
 		try {
 			properties.load(new FileReader(new File(mainPath
-					+ "server-setup.properties")));
-			port = Integer.valueOf(properties.getProperty("port"));
-			deleteOldInnerClasses = Boolean.valueOf(properties
-					.getProperty("deleteOldBlobs"));
-			writeStandAlone = Boolean.valueOf(properties
-					.getProperty("writeStandAlone"));
-			deleteOldStandalones = Boolean.valueOf(properties
-					.getProperty("deleteOldStandalones"));
-			canvasUdpateRate = Integer.valueOf(properties
-					.getProperty("canvasUdpateRate"));
-			updateTimeout = Integer.valueOf(properties
-					.getProperty("updateTimeout"));
+					+ serverPropertiesFile)));
+
+			Optional<String> port = getOptionalProperty(properties, "port");
+			if (port.isPresent()) {
+				this.port = Integer.valueOf(port.get());
+				log.info("port from properties-file: " + this.port);
+			}
+			// TODO: get this shorter! loop gracefully
+			// TODO: CLEARIFY CONFUSING NAMING
+			Optional<String> deleteOldBlobs = getOptionalProperty(properties,
+					"deleteOldBlobs");
+			if (deleteOldBlobs.isPresent()) {
+				this.deleteOldInnerClasses = Boolean.valueOf(deleteOldBlobs
+						.get());
+			}
+
+			Optional<String> deleteOldStandalones = getOptionalProperty(
+					properties, "deleteOldStandalones");
+			if (deleteOldStandalones.isPresent()) {
+				this.deleteOldStandalones = Boolean
+						.valueOf(deleteOldStandalones.get());
+				log.info("deleteOldStandalones from properties-file: "
+						+ this.deleteOldStandalones);
+			}
+
+			Optional<String> canvasUdpateRate = getOptionalProperty(properties,
+					"canvasUdpateRate");
+			if (canvasUdpateRate.isPresent())
+				this.canvasUdpateRate = Integer.valueOf(canvasUdpateRate.get());
+
+			Optional<String> updateTimeout = getOptionalProperty(properties,
+					"updateTimeout");
+			if (updateTimeout.isPresent())
+				this.updateTimeout = Integer.valueOf(updateTimeout.get());
+
 		} catch (FileNotFoundException e) {
 			System.err
-					.println("Propertiesfile not found. staying with default");
+					.println("Properties file not found. staying with default");
 		} catch (IOException e) {
 			e.printStackTrace();
 			e.printStackTrace();
 		} catch (NumberFormatException nfe) {
-			System.err.println(nfe.getMessage() + nl
-					+ "Staying with the good old");
+			nfe.printStackTrace();
+			System.err.println(nfe.getStackTrace() + " NumberFormatException: "
+					+ nl + "Staying with the good old values when compiled");
 		}
+	}
+
+	private Optional<String> getOptionalProperty(Properties properties,
+			String propName) {
+		return Optional.ofNullable(properties.getProperty(propName));
 	}
 
 	private void deleteFilesIn(String path) {
 		File[] oldFiles = new File(path).listFiles();
+		System.out.println(path);
 		for (File f : oldFiles) {
 			log.fine(f.getName() + "delted");
 			f.delete();
@@ -142,10 +174,14 @@ public class CJamServer extends PApplet {
 	}
 
 	public static void setFolders() {
-		mainPath = new File("").getAbsolutePath(); // .substring( 0, p.length( )
-													// - 3 );
-		log.info("mainpath: " + mainPath);
 		String separator = File.separator;
+		
+		// mainPath
+		mainPath = new File("").getAbsolutePath(); 
+		if(mainPath.endsWith("bin"))
+			mainPath = mainPath.substring(0,mainPath.length()-3);
+		log.info("mainpath: " + mainPath);
+		
 		blobPath = mainPath + separator + "blobs" + separator;
 		createPathIfNotThere(blobPath);
 		setupFilesPath = mainPath + separator + "setupFiles" + separator;
@@ -154,11 +190,11 @@ public class CJamServer extends PApplet {
 
 		createPathIfNotThere(innerClassPath);
 		mainCanvasTxt = new File(setupFilesPath + "MainCanvas.txt");
-		mainCanvasAddTxt = new File( setupFilesPath + "MainCanvasAdd.txt");
+		mainCanvasAddTxt = new File(setupFilesPath + "MainCanvasAdd.txt");
 		mainCanvasJava = new File(mainPath + separator + "src" + separator
-				+ "server" + separator + "MainCanvas.java");
+				+ "generated" + separator + "MainCanvas.java");
 		mainCanvasAddJava = new File(mainPath + separator + "src" + separator
-				+ "server" + separator + "MainCanvasAdd.java");
+				+ "generated" + separator + "MainCanvasAdd.java");
 	}
 
 	private static void createPathIfNotThere(String pathName) {
@@ -241,14 +277,14 @@ public class CJamServer extends PApplet {
 			}
 			innerClassWriter.write(nl);
 			innerClassWriter.write("}");
-			innerClassWriter.close( );
+			innerClassWriter.close();
 			if (writeStandAlone) {
 				standaloneWriter.write(nl);
 				standaloneWriter.write("}");
 				standaloneWriter.close();
 			}
-			log.info( name + " txtfile written!" );
-			server.disconnect( client );
+			log.info(name + " txtfile written!");
+			server.disconnect(client);
 			if (submitRateReached(name))
 				updateMainCanvas();
 		} catch (IOException e) {
@@ -269,22 +305,20 @@ public class CJamServer extends PApplet {
 				fw.write(read);
 			reader.close();
 
-			FileReader readerMainCanvasAdd = new FileReader( mainCanvasAddTxt );
-			FileWriter writerMainCanvasAdd = new FileWriter( mainCanvasAddJava );
+			FileReader readerMainCanvasAdd = new FileReader(mainCanvasAddTxt);
+			FileWriter writerMainCanvasAdd = new FileWriter(mainCanvasAddJava);
 			int read2 = 0;
-			while (( read2 = readerMainCanvasAdd.read()) != -1 ) {
-				writerMainCanvasAdd.write( read2 );
+			while ((read2 = readerMainCanvasAdd.read()) != -1) {
+				writerMainCanvasAdd.write(read2);
 			}
 			writerMainCanvasAdd.close();
 
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
-			fw.write("	private CJamBlob[] loadBlobs() { "
-					+ nl
-					+ "System.out.println(getClass().getSuperclass().getName());"
-					+ nl
-					+ "int n = getClass().getSuperclass().getDeclaredClasses().length;"
-					+ nl + "CJamBlob[] blobs = new CJamBlob[n];" + nl);
+			fw.write("	private CJamBlob[] loadBlobs() { " + nl
+					+ "System.out.println(getClass().getName());" + nl
+					+ "int n = getClass().getDeclaredClasses().length;" + nl
+					+ "CJamBlob[] blobs = new CJamBlob[n];" + nl);
 			int i = 0;
 			for (File blob : blobFiles) {
 				String blobName = blob.getName();
@@ -301,7 +335,7 @@ public class CJamServer extends PApplet {
 				reader.close();
 			}
 			fw.write(nl + "}" + nl);
-			fw.close( );
+			fw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -375,25 +409,28 @@ public class CJamServer extends PApplet {
 	}
 
 	private void setupLogger() {
-		log.setLevel(java.util.logging.Level.ALL);
+		log.setLevel(Level.ALL);
 		log.setFilter(null);
 		log.setUseParentHandlers(false);
 		ConsoleHandler h = new ConsoleHandler();
+		log.addHandler(h);
 		h.setFormatter(new SimpleFormatter() {
-
+			
+			
 			@Override
 			public String format(LogRecord record) {
-				return record.getMessage() + " @T: " + time(record.getMillis())
-						+ "\n";
+				return record.getMessage() //+ " @T: " + time(record.getMillis())
+						+ nl;
 			}
 
-			private String time(long millisecs) {
-				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
-				Date resultdate = new Date(millisecs);
-				return date_format.format(resultdate);
-			}
+//			private String time(long millisecs) {
+//				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
+//				Date resultdate = new Date(millisecs);
+//				return date_format.format(resultdate);
+//			}
 		});
-		log.addHandler(h);
+		
+		
 	}
 
 	public static void main(String[] args) {
