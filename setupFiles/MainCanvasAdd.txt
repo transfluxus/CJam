@@ -20,6 +20,6 @@ public class MainCanvasAdd extends MainCanvas {
 	}
 
 	public static void main(String args[]) {
-		PApplet.main(new String[] { "--present", "server.MainCanvasAdd" });
+		PApplet.main(new String[] { "--present", "server.generated.MainCanvasAdd" });
 	}
 }
