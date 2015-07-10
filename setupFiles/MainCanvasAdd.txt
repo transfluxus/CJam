@@ -1,4 +1,4 @@
-package server;
+package server.generated;
 
 import processing.core.PApplet;
 

@@ -9,9 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Properties;
@@ -43,6 +41,7 @@ public class CJamServer extends PApplet {
 	 */
 	private static String innerClassPath;
 	private static String setupFilesPath;
+	private static String generatedJavaFilesPath;
 	private static File mainCanvasTxt;
 	private static File mainCanvasAddTxt;
 	private static File mainCanvasJava;
@@ -93,7 +92,7 @@ public class CJamServer extends PApplet {
 		setupLogger();
 		setFolders();
 		setSettings();
-
+		log.info("**********************************************************");
 		server = new Server(this, port);
 		try {
 			log.info("CJamServer running at port:" + port + " "
@@ -107,6 +106,21 @@ public class CJamServer extends PApplet {
 			deleteFilesIn(blobPath);
 	}
 
+	private void setupLogger() {
+		log.setLevel(Level.ALL);
+		log.setFilter(null);
+		log.setUseParentHandlers(false);
+		ConsoleHandler h = new ConsoleHandler();
+		log.addHandler(h);
+		h.setFormatter(new SimpleFormatter() {
+			@Override
+			public String format(LogRecord record) {
+				return record.getMessage() //+ " @T: " + time(record.getMillis())
+						+ nl;
+			}
+		});
+	}
+	
 	private void setSettings() {
 		Properties properties = new Properties();
 		try {
@@ -184,27 +198,29 @@ public class CJamServer extends PApplet {
 		
 		blobPath = mainPath + separator + "blobs" + separator;
 		createPathIfNotThere(blobPath);
+		
 		setupFilesPath = mainPath + separator + "setupFiles" + separator;
 		createPathIfNotThere(setupFilesPath);
-		innerClassPath = mainPath + separator + "innerClasses" + separator;
 
+		innerClassPath = mainPath + separator + "innerClasses" + separator;
 		createPathIfNotThere(innerClassPath);
+		
+		// Templates for generated files
 		mainCanvasTxt = new File(setupFilesPath + "MainCanvas.txt");
 		mainCanvasAddTxt = new File(setupFilesPath + "MainCanvasAdd.txt");
-		mainCanvasJava = new File(mainPath + separator + "src" + separator
-				+ "generated" + separator + "MainCanvas.java");
-		mainCanvasAddJava = new File(mainPath + separator + "src" + separator
-				+ "generated" + separator + "MainCanvasAdd.java");
+		
+		// Generated files
+		generatedJavaFilesPath= mainPath + separator + "src" + separator
+				+ "server"+separator+"generated" + separator; 
+		createPathIfNotThere(generatedJavaFilesPath);
+		mainCanvasJava = new File(generatedJavaFilesPath + "MainCanvas.java");
+		mainCanvasAddJava = new File(generatedJavaFilesPath + "MainCanvasAdd.java");
 	}
 
 	private static void createPathIfNotThere(String pathName) {
 		File path = new File(pathName);
 		if (!path.exists())
-			try {
-				path.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+				path.mkdirs();
 	}
 
 	@Override
@@ -315,10 +331,18 @@ public class CJamServer extends PApplet {
 
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
-			fw.write("	private CJamBlob[] loadBlobs() { " + nl
+			fw.write("	private CJamBlob[] loadBlobs() { " + nl);
+			/*		
 					+ "System.out.println(getClass().getName());" + nl
-					+ "int n = getClass().getDeclaredClasses().length;" + nl
-					+ "CJamBlob[] blobs = new CJamBlob[n];" + nl);
+					+ " Class<?> canvasClazz = getClass();"+ nl
+					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\"))"+ nl
+					+	"canvasClazz = getClass().getSuperclass();"+ nl
+					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\")) {"+ nl
+					+"	System.out.println(\"Didn't get MainCanvas class. Work on the setupFiles/MainCanvas.txt template\");"+ nl
+					+"	System.exit(1);"+ nl
+					+"}"+ nl
+					+"int n = canvasClazz.getDeclaredClasses().length;"+nl);
+					*/
 			int i = 0;
 			for (File blob : blobFiles) {
 				String blobName = blob.getName();
@@ -345,18 +369,14 @@ public class CJamServer extends PApplet {
 	private void startMC() {
 		System.out.println("compiling");
 		ArrayList<File> files = new ArrayList<File>();
-		File f1 = new File(mainPath + File.separator + "src" + File.separator
-				+ "server" + File.separator + "MainCanvas.java");
-		File f2 = new File(mainPath + File.separator + "src" + File.separator
-				+ "server" + File.separator + "MainCanvasAdd.java");
 
-		System.out.println(f1);
-		System.out.println(f2);
+		System.out.println(mainCanvasJava);
+		System.out.println(mainCanvasAddJava);
 
 		// System.exit( 1 );
 
-		files.add(f1);
-		files.add(f2);
+		files.add(mainCanvasJava);
+		files.add(mainCanvasAddJava);
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
 		if (!success) {
@@ -366,9 +386,9 @@ public class CJamServer extends PApplet {
 		if (MCRunning)
 			process.destroy();
 
-		String p = "java -cp " + mainPath + File.separator + "bin;" + mainPath
-				+ File.separator + "bin" + File.separator + "core.jar "
-				+ "server.MainCanvasAdd";
+		String p = "java -cp " + mainPath + "bin;" + mainPath
+				+ "bin" + File.separator + "core.jar;. "
+				+ "server.generated.MainCanvasAdd";
 		System.out.println(p);
 		try {
 			process = Runtime.getRuntime().exec(p);
@@ -406,31 +426,6 @@ public class CJamServer extends PApplet {
 					+ " timer expires in: " + timeS);
 		}
 		return false;
-	}
-
-	private void setupLogger() {
-		log.setLevel(Level.ALL);
-		log.setFilter(null);
-		log.setUseParentHandlers(false);
-		ConsoleHandler h = new ConsoleHandler();
-		log.addHandler(h);
-		h.setFormatter(new SimpleFormatter() {
-			
-			
-			@Override
-			public String format(LogRecord record) {
-				return record.getMessage() //+ " @T: " + time(record.getMillis())
-						+ nl;
-			}
-
-//			private String time(long millisecs) {
-//				SimpleDateFormat date_format = new SimpleDateFormat("HH:mm");
-//				Date resultdate = new Date(millisecs);
-//				return date_format.format(resultdate);
-//			}
-		});
-		
-		
 	}
 
 	public static void main(String[] args) {

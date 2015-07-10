@@ -8,7 +8,7 @@ public abstract class CJamBlob {
 
 	abstract public void draw();
 
-	PStyle style;
+	public PStyle style;
 
 	public void setStyle(PStyle style) {
 		this.style = style;

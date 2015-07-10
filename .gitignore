@@ -1,10 +1,12 @@
 src/blobs/*
 innerClasses/*
-src/server/MainCanvas.java
-src/server/MainCanvasAdd.java
 bin/**
 innerClasses:
 setupFiles:
 /bin/
 org.eclipse.jdt.ui.prefs
 blobs
+CJam/src/server/generated/MainCanvas.java
+CJam/src/server/generated/MainCanvasAdd.java
+src/server/generated/MainCanvas.java
+src/server/generated/MainCanvasAdd.java

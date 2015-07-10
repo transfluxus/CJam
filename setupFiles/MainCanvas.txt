@@ -1,6 +1,9 @@
-package server;
+package server.generated;
 
 import processing.core.PApplet;
+import server.CJamBlob;
+import server.PStyleCopy;
+
 
 public class MainCanvas extends PApplet {
 

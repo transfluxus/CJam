@@ -27,16 +27,20 @@ public class CJam {
 	public static Logger log = Logger.getAnonymousLogger();
 
 	public static CJam initCJam(PApplet ap, String serverIp) {
-		return new CJam(ap, serverIp);
+		return new CJam(ap, serverIp,port);
+	}	
+	
+	public static CJam initCJam(PApplet ap, String serverIp,int port) {
+		return new CJam(ap, serverIp,port);
 	}
 
-	public CJam(PApplet ap, String serverIp) {
+	public CJam(PApplet ap, String serverIp,int port) {
 		this.ap = ap;
 		ap.size(800, 600);
 		log.setLevel(Level.INFO);
 		// log.setLevel(Level.WARNING);
 		try {
-			log.info("connecting...");
+			log.info("connecting to port "+port+"...");
 			client = new Client(ap, serverIp, port);
 			ap.registerMethod("post", this);
 			if (!client.active())
