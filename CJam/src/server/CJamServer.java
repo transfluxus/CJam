@@ -331,10 +331,18 @@ public class CJamServer extends PApplet {
 
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
-			fw.write("	private CJamBlob[] loadBlobs() { " + nl
+			fw.write("	private CJamBlob[] loadBlobs() { " + nl);
+			/*		
 					+ "System.out.println(getClass().getName());" + nl
-					+ "int n = getClass().getDeclaredClasses().length;" + nl
-					+ "CJamBlob[] blobs = new CJamBlob[n];" + nl);
+					+ " Class<?> canvasClazz = getClass();"+ nl
+					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\"))"+ nl
+					+	"canvasClazz = getClass().getSuperclass();"+ nl
+					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\")) {"+ nl
+					+"	System.out.println(\"Didn't get MainCanvas class. Work on the setupFiles/MainCanvas.txt template\");"+ nl
+					+"	System.exit(1);"+ nl
+					+"}"+ nl
+					+"int n = canvasClazz.getDeclaredClasses().length;"+nl);
+					*/
 			int i = 0;
 			for (File blob : blobFiles) {
 				String blobName = blob.getName();
@@ -361,18 +369,14 @@ public class CJamServer extends PApplet {
 	private void startMC() {
 		System.out.println("compiling");
 		ArrayList<File> files = new ArrayList<File>();
-		File f1 = new File(mainPath + File.separator + "src" + File.separator
-				+ "server" + File.separator + "MainCanvas.java");
-		File f2 = new File(mainPath + File.separator + "src" + File.separator
-				+ "server" + File.separator + "MainCanvasAdd.java");
 
-		System.out.println(f1);
-		System.out.println(f2);
+		System.out.println(mainCanvasJava);
+		System.out.println(mainCanvasAddJava);
 
 		// System.exit( 1 );
 
-		files.add(f1);
-		files.add(f2);
+		files.add(mainCanvasJava);
+		files.add(mainCanvasAddJava);
 		boolean success = new Compiler().compile(files);
 		System.out.println("compilation: " + success);
 		if (!success) {
@@ -382,9 +386,9 @@ public class CJamServer extends PApplet {
 		if (MCRunning)
 			process.destroy();
 
-		String p = "java -cp " + mainPath + File.separator + "bin;" + mainPath
-				+ File.separator + "bin" + File.separator + "core.jar "
-				+ "server.MainCanvasAdd";
+		String p = "java -cp " + mainPath + "bin;" + mainPath
+				+ "bin" + File.separator + "core.jar;. "
+				+ "server.generated.MainCanvasAdd";
 		System.out.println(p);
 		try {
 			process = Runtime.getRuntime().exec(p);

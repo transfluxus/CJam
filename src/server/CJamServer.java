@@ -331,8 +331,7 @@ public class CJamServer extends PApplet {
 
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
-			fw.write("	private CJamBlob[] loadBlobs() { " + nl);
-			/*		
+			fw.write("	private CJamBlob[] loadBlobs() { " + nl
 					+ "System.out.println(getClass().getName());" + nl
 					+ " Class<?> canvasClazz = getClass();"+ nl
 					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\"))"+ nl
@@ -341,8 +340,8 @@ public class CJamServer extends PApplet {
 					+"	System.out.println(\"Didn't get MainCanvas class. Work on the setupFiles/MainCanvas.txt template\");"+ nl
 					+"	System.exit(1);"+ nl
 					+"}"+ nl
-					+"int n = canvasClazz.getDeclaredClasses().length;"+nl);
-					*/
+					+"int n = canvasClazz.getDeclaredClasses().length;"+nl
+					+ "blobs = new CJamBlob[n]"+nl);
 			int i = 0;
 			for (File blob : blobFiles) {
 				String blobName = blob.getName();
