@@ -124,13 +124,13 @@ public class CJamServer extends PApplet {
 	private void setSettings() {
 		Properties properties = new Properties();
 		try {
-			properties.load(new FileReader(new File(mainPath
+			properties.load(new FileReader(new File(mainPath + File.separator
 					+ serverPropertiesFile)));
 
 			Optional<String> port = getOptionalProperty(properties, "port");
 			if (port.isPresent()) {
-				this.port = Integer.valueOf(port.get());
-				log.info("port from properties-file: " + this.port);
+				CJamServer.port = Integer.valueOf(port.get());
+				log.info("port from properties-file: " + CJamServer.port);
 			}
 			// TODO: get this shorter! loop gracefully
 			// TODO: CLEARIFY CONFUSING NAMING
@@ -249,6 +249,7 @@ public class CJamServer extends PApplet {
 		log.info("Client msg: " + ip + "\n" + msg);
 		// println("received: " + cs);
 		// println(lines.length);
+		// Client sends name
 		if (msg.startsWith("name:")) {
 			ipToName.put(ip, msg.substring(5));
 			File oldBlobClass = new File("blob_" + ip.replaceAll("\\.", "_"));
@@ -326,6 +327,7 @@ public class CJamServer extends PApplet {
 			while ((read2 = readerMainCanvasAdd.read()) != -1) {
 				writerMainCanvasAdd.write(read2);
 			}
+			readerMainCanvasAdd.close();
 			writerMainCanvasAdd.close();
 
 			// some additional line to load the inner classes (no reflection)
