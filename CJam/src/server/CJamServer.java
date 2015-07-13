@@ -22,7 +22,7 @@ import java.util.logging.SimpleFormatter;
 import processing.core.PApplet;
 import processing.net.Client;
 import processing.net.Server;
-import client.CJam;
+import client.CJamClient;
 
 public class CJamServer extends PApplet {
 	private static final long serialVersionUID = -4544033159723138250L;
@@ -180,7 +180,6 @@ public class CJamServer extends PApplet {
 
 	private void deleteFilesIn(String path) {
 		File[] oldFiles = new File(path).listFiles();
-		System.out.println(path);
 		for (File f : oldFiles) {
 			log.fine(f.getName() + "delted");
 			f.delete();
@@ -227,7 +226,7 @@ public class CJamServer extends PApplet {
 	public void draw() {
 		Client client = server.available();
 		if (client != null) {
-			String s = client.readStringUntil(CJam.msgEndMarker);
+			String s = client.readStringUntil(CJamClient.msgEndMarker);
 			if (s != null) {
 				clientProcess(client, s.substring(0, s.length() - 1));
 			}
@@ -285,7 +284,7 @@ public class CJamServer extends PApplet {
 			innerClassWriter.write("public class " + name
 					+ " extends CJamBlob {" + nl);
 			for (String line : lines) {
-				if (line.contains(CJam.delMarker))
+				if (line.contains(CJamClient.delMarker))
 					continue;
 				innerClassWriter.write(line);
 				if (writeStandAlone)
@@ -331,8 +330,7 @@ public class CJamServer extends PApplet {
 
 			// some additional line to load the inner classes (no reflection)
 			File[] blobFiles = new File(innerClassPath).listFiles();
-			fw.write("	private CJamBlob[] loadBlobs() { " + nl);
-			/*		
+			fw.write("	private CJamBlob[] loadBlobs() { " + nl
 					+ "System.out.println(getClass().getName());" + nl
 					+ " Class<?> canvasClazz = getClass();"+ nl
 					+ "if(!canvasClazz.getSimpleName().equals(\"MainCanvas\"))"+ nl
@@ -341,8 +339,8 @@ public class CJamServer extends PApplet {
 					+"	System.out.println(\"Didn't get MainCanvas class. Work on the setupFiles/MainCanvas.txt template\");"+ nl
 					+"	System.exit(1);"+ nl
 					+"}"+ nl
-					+"int n = canvasClazz.getDeclaredClasses().length;"+nl);
-					*/
+					+"int n = canvasClazz.getDeclaredClasses().length;"+nl
+					+ "blobs = new CJamBlob[n];"+nl);
 			int i = 0;
 			for (File blob : blobFiles) {
 				String blobName = blob.getName();

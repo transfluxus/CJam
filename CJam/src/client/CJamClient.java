@@ -1,13 +1,15 @@
 package client;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import processing.core.PApplet;
 import processing.net.Client;
 
-public class CJam {
+public class CJamClient {
 
 	final PApplet ap;
 	// for debugging
@@ -26,15 +28,15 @@ public class CJam {
 
 	public static Logger log = Logger.getAnonymousLogger();
 
-	public static CJam initCJam(PApplet ap, String serverIp) {
-		return new CJam(ap, serverIp,port);
+	public static CJamClient initCJam(PApplet ap, String serverIp) {
+		return new CJamClient(ap, serverIp,port);
 	}	
 	
-	public static CJam initCJam(PApplet ap, String serverIp,int port) {
-		return new CJam(ap, serverIp,port);
+	public static CJamClient initCJam(PApplet ap, String serverIp,int port) {
+		return new CJamClient(ap, serverIp,port);
 	}
 
-	public CJam(PApplet ap, String serverIp,int port) {
+	public CJamClient(PApplet ap, String serverIp,int port) {
 		this.ap = ap;
 		ap.size(800, 600);
 		log.setLevel(Level.INFO);
@@ -69,14 +71,17 @@ public class CJam {
 
 	public String readPDE() {
 		File sketchpath_ = new File(ap.sketchPath);
-		String mainPde = ap.sketchPath.substring(ap.sketchPath
-				.lastIndexOf(System.getProperty("file.separator")) + 1)
-				+ ".pde";
-		log.info("mainfolder: " + mainPde);
+//		String mainPde = ap.sketchPath.substring(ap.sketchPath
+//				.lastIndexOf(System.getProperty("file.separator")) + 1)
+//				+ ".pde";
+//		log.info("main file: " + mainPde);
 		File[] files = sketchpath_.listFiles();
 		StringBuilder sb = new StringBuilder();
 		for (File f : files) {
-			if (f.isFile() && f.getName().equals(mainPde)) {
+			if (f.isFile() 
+					&&
+					f.getName().endsWith(".pde")) {
+					//f.getName().equals(mainPde)) {
 				String lines[] = PApplet.loadStrings(f);
 				log.info("reading: " + f.getName());
 				for (String l : lines) {
@@ -96,11 +101,9 @@ public class CJam {
 							}
 					sb.append(l + System.getProperty("line.separator"));
 				}
-				// since only one file is supported atm return it
-				return sb.toString();
 			}
 		}
-		return "";
+		return sb.toString();
 	}
 
 	public static void autoBg(int c) {

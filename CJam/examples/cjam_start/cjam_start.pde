@@ -1,11 +1,14 @@
-import client.CJam;
+import client.CJamClient;
 
 void setup() {
-  CJam.initCJam(this, "127.0.01");
+  CJamClient.initCJam(this, "127.0.0.1",6000);
   background(0);
 }
 
 void draw() {
-  fill(255,100,0);
-  ellipse(sin(frameCount*0.01f)*width/2, height/2, 30, 30);
+  background(0);
+  fill(255, 10, 200);
+  translate(sin(frameCount*0.01f)*width/2, height/2);
+  rotate(frameCount*0.01f);
+  rect(0, 0, 30, 30);
 }
