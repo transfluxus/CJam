@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 import processing.net.Client;
 import processing.net.Server;
 import client.CJamClient;
@@ -76,6 +77,11 @@ public class CJamServer extends PApplet {
 	private int updateTimer = 0;
 
 	/**
+	 * Frame size: size of the final running app frame...
+	 */
+	private static PVector frameSize = new PVector(600,400);
+	
+	/**
 	 * set when the MainCanvas is running and needs to be destroyed
 	 */
 	private static boolean MCRunning = false;
@@ -85,6 +91,8 @@ public class CJamServer extends PApplet {
 	 */
 	private Process process;
 
+
+	
 	@Override
 	public void setup() {
 		super.setup();
@@ -124,13 +132,13 @@ public class CJamServer extends PApplet {
 	private void setSettings() {
 		Properties properties = new Properties();
 		try {
-			properties.load(new FileReader(new File(mainPath
+			properties.load(new FileReader(new File(mainPath + File.separator
 					+ serverPropertiesFile)));
 
 			Optional<String> port = getOptionalProperty(properties, "port");
 			if (port.isPresent()) {
-				this.port = Integer.valueOf(port.get());
-				log.info("port from properties-file: " + this.port);
+				CJamServer.port = Integer.valueOf(port.get());
+				log.info("port from properties-file: " + CJamServer.port);
 			}
 			// TODO: get this shorter! loop gracefully
 			// TODO: CLEARIFY CONFUSING NAMING
@@ -159,7 +167,19 @@ public class CJamServer extends PApplet {
 					"updateTimeout");
 			if (updateTimeout.isPresent())
 				this.updateTimeout = Integer.valueOf(updateTimeout.get());
-
+			
+			
+			Optional<String> frameSizeX = getOptionalProperty(properties,
+					"frameSizeX");
+			if (frameSizeX.isPresent()) {
+				CJamServer.frameSize.x = Integer.valueOf(frameSizeX.get());
+			}
+			Optional<String> frameSizeY = getOptionalProperty(properties,
+					"frameSizeY");
+			if (frameSizeY.isPresent()) {
+				CJamServer.frameSize.y = Integer.valueOf(frameSizeY.get());
+			}
+			
 		} catch (FileNotFoundException e) {
 			System.err
 					.println("Properties file not found. staying with default");
@@ -249,17 +269,27 @@ public class CJamServer extends PApplet {
 		log.info("Client msg: " + ip + "\n" + msg);
 		// println("received: " + cs);
 		// println(lines.length);
+		// Client sends name
 		if (msg.startsWith("name:")) {
 			ipToName.put(ip, msg.substring(5));
 			File oldBlobClass = new File("blob_" + ip.replaceAll("\\.", "_"));
 			if (oldBlobClass.exists())
 				oldBlobClass.delete();
 			return;
-		} else if (!ipToName.containsKey(ip)) {
+		} 
+		// init. send the size to the client
+		else if(msg.startsWith("init")) {
+			client.write((int)frameSize.x+" "+(int)frameSize.y);
+			return;
+		}
+		
+		if (!ipToName.containsKey(ip)) {
 			String name = "blob_" + ip.replaceAll("\\.", "_");
 			log.info("new Client: " + name);
 			ipToName.put(ip, name);
 		}
+		
+		// DEFAULT CASE: Client sends sketch
 		String name = ipToName.get(ip);
 		File innerClassFile = new File(innerClassPath + name + ".txt");
 		String[] lines = msg.split("\n");
@@ -326,6 +356,7 @@ public class CJamServer extends PApplet {
 			while ((read2 = readerMainCanvasAdd.read()) != -1) {
 				writerMainCanvasAdd.write(read2);
 			}
+			readerMainCanvasAdd.close();
 			writerMainCanvasAdd.close();
 
 			// some additional line to load the inner classes (no reflection)

@@ -38,7 +38,7 @@ public class CJamClient {
 
 	public CJamClient(PApplet ap, String serverIp,int port) {
 		this.ap = ap;
-		ap.size(800, 600);
+		
 		log.setLevel(Level.INFO);
 		// log.setLevel(Level.WARNING);
 		try {
@@ -47,10 +47,31 @@ public class CJamClient {
 			ap.registerMethod("post", this);
 			if (!client.active())
 				throw new java.net.ConnectException("nope");
-			log.info("connected");
+			log.info("connected... getting window size");
+			client.write("init");
+			client.write(msgEndMarker);
+
+			int timer = 20;
+			while(client.available() == 0 && timer > 0) {
+				Thread.sleep(100);
+				timer--;
+			}
+			if(client.available()>0) {
+				System.out.println();
+				String[] size = client.readString().split(" ");
+				int szX = Integer.valueOf(size[0]);
+				int szY = Integer.valueOf(size[1]);
+				ap.size(szX,szY);
+				log.info("Received size: "+szX+"x"+szY);
+			} else {
+				System.out.println("Server didn't send size. gonna use 800x600");
+				ap.size(800, 600);
+			}
+			
 		} catch (Exception exc) {
 			System.err.println("No Server. You are on your own");
 		}
+		
 	}
 
 	public void post() {
